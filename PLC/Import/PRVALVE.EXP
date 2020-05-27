@@ -1,0 +1,634 @@
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Valve' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prValve
+VAR
+
+	Valve_V101	:	fbValve;
+	Valve_V102	:	fbValve;
+	Valve_V103	:	fbValve;
+	Valve_V104	:	fbValve;
+	Valve_V105	:	fbValve;
+	Valve_V106	:	fbValve;
+	Valve_V107	:	fbValve;
+	Valve_V108	:	fbValve;
+	Valve_V109	:	fbValve;
+	Valve_V110	:	fbValve;
+	Valve_V111	:	fbValve;
+	Valve_V201	:	fbValve;
+	Valve_V202	:	fbValve;
+	Valve_V203	:	fbValve;
+	Valve_V204	:	fbValve;
+	Valve_V205	:	fbValve;
+	Valve_V206	:	fbValve;
+	Valve_V207	:	fbValve;
+	Valve_V208	:	fbValve;
+	Valve_V209	:	fbValve;
+	Valve_V210	:	fbValve;
+	Valve_V211	:	fbValve;
+	Valve_V301	:	fbValve;
+	Valve_V302	:	fbValve;
+	Valve_V303	:	fbValve;
+	Valve_V304	:	fbValve;
+	Valve_V305	:	fbValve;
+	Valve_V306	:	fbValve;
+	Valve_V307	:	fbValve;
+	Valve_V308	:	fbValve;
+	Valve_V309	:	fbValve;
+	Valve_V310	:	fbValve;
+	Valve_V311	:	fbValve;
+	Valve_V401	:	fbValve;
+	Valve_V402	:	fbValve;
+	Valve_V403	:	fbValve;
+	Valve_V404	:	fbValve;
+	Valve_V405	:	fbValve;
+	Valve_V406	:	fbValve;
+	Valve_V407	:	fbValve;
+	Valve_V408	:	fbValve;
+	Valve_V409	:	fbValve;
+	Valve_V410	:	fbValve;
+	Valve_V411	:	fbValve;
+	Valve_V501	:	fbValve;
+	Valve_V510	:	fbValve;
+	Valve_V511	:	fbValve;
+	Valve_V512	:	fbValve;
+	Valve_V513	:	fbValve;
+	Valve_V514	:	fbValve;
+	Valve_V515	:	fbValve;
+	WaterSupplyValve:	fbWaterSupplyValve;
+	WaterSupplyValve1:	fbWaterSupplyValve;
+
+
+	xOnAutoWorking: BOOL;
+	xResetErrorValves: BOOL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+xResetErrorValves:=xResetAlmAll;
+xResetErrorValves:=xResetAlmAll;
+
+Valve_V101
+(xManualMode:= ManualMode_V101,
+xSensor:=(*DI_V101*)DO_V101,
+xOnAuto:= OnAuto_V101,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V101,
+xDO_On=> DO_V101,
+wError=> wAlm_V101,
+xState=> xState_V101);
+
+Valve_V102
+(xManualMode:= ManualMode_V102,
+xSensor:=(*DI_V102*)DO_V102,
+xOnAuto:= OnAuto_V102,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V102,
+xDO_On=> DO_V102,
+wError=> wAlm_V102,
+xState=> xState_V102);
+
+Valve_V103
+(xManualMode:= ManualMode_V103,
+xSensor:=(*DI_V103*)DO_V103,
+xOnAuto:= OnAuto_V103,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V103,
+xDO_On=> DO_V103,
+wError=> wAlm_V103,
+xState=> xState_V103);
+
+Valve_V104
+(xManualMode:= ManualMode_V104,
+xSensor:=(*DI_V104*)DO_V104,
+xOnAuto:= OnAuto_V104,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V104,
+xDO_On=> DO_V104,
+wError=> wAlm_V104,
+xState=> xState_V104);
+
+Valve_V105
+(xManualMode:= ManualMode_V105,
+xSensor:=(*DI_V105*)DO_V105,
+xOnAuto:= OnAuto_V105,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V105,
+xDO_On=> DO_V105,
+wError=> wAlm_V105,
+xState=> xState_V105);
+
+Valve_V106
+(xManualMode:= ManualMode_V106,
+xSensor:=(*DI_V106*)DO_V106,
+(*
+xInterlock:= DI_AlkaliUpperLevel,
+*)
+xOnAuto:= OnAuto_V106,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V106,
+xDO_On=> DO_V106,
+wError=> wAlm_V106,
+xState=> xState_V106);
+
+Valve_V107
+(xManualMode:= ManualMode_V107,
+xSensor:=(*DI_V107*)DO_V107,
+(*
+xInterlock:= DI_AccidUpperLevel OR xState_V102,
+*)
+xOnAuto:= OnAuto_V107,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V107,
+xDO_On=> DO_V107,
+wError=> wAlm_V107,
+xState=> xState_V107);
+
+Valve_V108
+(xManualMode:= ManualMode_V108,
+xSensor:=(*DI_V108*)DO_V108,
+xInterlock:= ,
+xOnAuto:= OnAuto_V108,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V108,
+xDO_On=> DO_V108,
+wError=> wAlm_V108,
+xState=> xState_V108);
+
+Valve_V109
+(xManualMode:= ManualMode_V109,
+xSensor:=(*DI_V109*)DO_V109,
+xOnAuto:= OnAuto_V109,
+wOffDelay:=1,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V109,
+xDO_On=> DO_V109,
+wError=> wAlm_V109,
+xState=> xState_V109);
+(*
+Valve_V110
+(xManualMode:= ManualMode_V110,
+xSensor:=DI_V110,
+xOnAuto:= OnAuto_V110,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V110,
+xDO_On=> DO_V110,
+wError=> wAlm_V110,
+xState=> xState_V110);
+*)
+
+WaterSupplyValve1(
+	xManualMode:= ManualMode_V110,
+	xOnAutoWorking:= (*xOnAutoWorking*) TRUE,
+	wOffDelay:= ,
+	xSensor:= DO_V110(*DI_V501*),
+	xStopSupplying:= xStopFillingWaterTank,
+	rWaterLevel:= CleanWaterLevel,
+	rWaterLevelNotOK:= rWaterLevelNotOK,
+	xUpperLevel:= (*DI_WaterUpperLevel*)CleanWaterLevel > 90,
+	xOnManual:= OnManual_V110,
+	xDO_On=> DO_V110,
+	xState=> xState_V110);
+
+
+Valve_V111
+(xManualMode:= ManualMode_V111,
+xSensor:=(*DI_V111*)DO_V111,
+xOnAuto:= OnAuto_V111,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V111,
+xDO_On=> DO_V111,
+wError=> wAlm_V111,
+xState=> xState_V111);
+
+Valve_V201
+(xManualMode:= ManualMode_V201,
+xSensor:=DI_V201,
+xOnAuto:= OnAuto_V201,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V201,
+xDO_On=> DO_V201,
+wError=> wAlm_V201,
+xState=> xState_V201);
+
+Valve_V202
+(xManualMode:= ManualMode_V202,
+xSensor:=DI_V202,
+xOnAuto:= OnAuto_V202,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V202,
+xDO_On=> DO_V202,
+wError=> wAlm_V202,
+xState=> xState_V202);
+
+Valve_V203
+(xManualMode:= ManualMode_V203,
+xSensor:=DI_V203,
+xOnAuto:= OnAuto_V203,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V203,
+xDO_On=> DO_V203,
+wError=> wAlm_V203,
+xState=> xState_V203);
+
+Valve_V204
+(xManualMode:= ManualMode_V204,
+xSensor:=DI_V204,
+xOnAuto:= OnAuto_V204,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V204,
+xDO_On=> DO_V204,
+wError=> wAlm_V204,
+xState=> xState_V204);
+
+Valve_V205
+(xManualMode:= ManualMode_V205,
+xSensor:=DI_V205,
+xOnAuto:= OnAuto_V205,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V205,
+xDO_On=> DO_V205,
+wError=> wAlm_V205,
+xState=> xState_V205);
+
+Valve_V206
+(xManualMode:= ManualMode_V206,
+xSensor:=DI_V206,
+xInterlock:= DI_AlkaliUpperLevel,
+xOnAuto:= OnAuto_V206,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V206,
+xDO_On=> DO_V206,
+wError=> wAlm_V206,
+xState=> xState_V206);
+
+Valve_V207
+(xManualMode:= ManualMode_V207,
+xSensor:=DI_V207,
+xInterlock:= DI_AccidUpperLevel,
+xOnAuto:= OnAuto_V207,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V207,
+xDO_On=> DO_V207,
+wError=> wAlm_V207,
+xState=> xState_V207);
+
+Valve_V208
+(xManualMode:= ManualMode_V208,
+xSensor:=DI_V208,
+xInterlock:= DI_UsedWaterUpperLevel,
+xOnAuto:= OnAuto_V208,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V208,
+xDO_On=> DO_V208,
+wError=> wAlm_V208,
+xState=> xState_V208);
+
+Valve_V209
+(xManualMode:= ManualMode_V209,
+xSensor:=DI_V209,
+wOffDelay:=1,
+xOnAuto:= OnAuto_V209,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V209,
+xDO_On=> DO_V209,
+wError=> wAlm_V209,
+xState=> xState_V209);
+
+Valve_V210
+(xManualMode:= ManualMode_V210,
+xSensor:=DI_V210,
+xOnAuto:= OnAuto_V210,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V210,
+xDO_On=> DO_V210,
+wError=> wAlm_V210,
+xState=> xState_V210);
+
+Valve_V211
+(xManualMode:= ManualMode_V211,
+xSensor:=DI_V211,
+xOnAuto:= OnAuto_V211,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V211,
+xDO_On=> DO_V211,
+wError=> wAlm_V211,
+xState=> xState_V211);
+
+Valve_V301
+(xManualMode:= ManualMode_V301,
+xSensor:=DI_V301,
+xOnAuto:= OnAuto_V301,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V301,
+xDO_On=> DO_V301,
+wError=> wAlm_V301,
+xState=> xState_V301);
+
+Valve_V302
+(xManualMode:= ManualMode_V302,
+xSensor:=DI_V302,
+xOnAuto:= OnAuto_V302,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V302,
+xDO_On=> DO_V302,
+wError=> wAlm_V302,
+xState=> xState_V302);
+
+Valve_V303
+(xManualMode:= ManualMode_V303,
+xSensor:=DI_V303,
+xOnAuto:= OnAuto_V303,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V303,
+xDO_On=> DO_V303,
+wError=> wAlm_V303,
+xState=> xState_V303);
+
+Valve_V304
+(xManualMode:= ManualMode_V304,
+xSensor:=DI_V304,
+xOnAuto:= OnAuto_V304,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V304,
+xDO_On=> DO_V304,
+wError=> wAlm_V304,
+xState=> xState_V304);
+
+Valve_V305
+(xManualMode:= ManualMode_V305,
+xSensor:=DI_V305,
+xOnAuto:= OnAuto_V305,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V305,
+xDO_On=> DO_V305,
+wError=> wAlm_V305,
+xState=> xState_V305);
+
+Valve_V306
+(xManualMode:= ManualMode_V306,
+xSensor:=DI_V306,
+xInterlock:= DI_AlkaliUpperLevel,
+xOnAuto:= OnAuto_V306,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V306,
+xDO_On=> DO_V306,
+wError=> wAlm_V306,
+xState=> xState_V306);
+
+Valve_V307
+(xManualMode:= ManualMode_V307,
+xSensor:=DI_V307,
+xInterlock:= DI_AccidUpperLevel,
+xOnAuto:= OnAuto_V307,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V307,
+xDO_On=> DO_V307,
+wError=> wAlm_V307,
+xState=> xState_V307);
+
+Valve_V308
+(xManualMode:= ManualMode_V308,
+xSensor:=DI_V308,
+wOffDelay:=1,
+xInterlock:= DI_UsedWaterUpperLevel,
+xOnAuto:= OnAuto_V308,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V308,
+xDO_On=> DO_V308,
+wError=> wAlm_V308,
+xState=> xState_V308);
+
+Valve_V309
+(xManualMode:= ManualMode_V309,
+xSensor:=DI_V309,
+xOnAuto:= OnAuto_V309,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V309,
+xDO_On=> DO_V309,
+wError=> wAlm_V309,
+xState=> xState_V309);
+
+Valve_V310
+(xManualMode:= ManualMode_V310,
+xSensor:=DI_V310,
+xOnAuto:= OnAuto_V310,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V310,
+xDO_On=> DO_V310,
+wError=> wAlm_V310,
+xState=> xState_V310);
+
+Valve_V311
+(xManualMode:= ManualMode_V311,
+xSensor:=DI_V311,
+xOnAuto:= OnAuto_V311,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V311,
+xDO_On=> DO_V311,
+wError=> wAlm_V311,
+xState=> xState_V311);
+
+Valve_V401
+(xManualMode:= ManualMode_V401,
+xSensor:=DI_V401,
+xOnAuto:= OnAuto_V401,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V401,
+xDO_On=> DO_V401,
+wError=> wAlm_V401,
+xState=> xState_V401);
+
+Valve_V402
+(xManualMode:= ManualMode_V402,
+xSensor:=DI_V402,
+xOnAuto:= OnAuto_V402,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V402,
+xDO_On=> DO_V402,
+wError=> wAlm_V402,
+xState=> xState_V402);
+
+Valve_V403
+(xManualMode:= ManualMode_V403,
+xSensor:=DI_V403,
+xOnAuto:= OnAuto_V403,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V403,
+xDO_On=> DO_V403,
+wError=> wAlm_V403,
+xState=> xState_V403);
+
+Valve_V404
+(xManualMode:= ManualMode_V404,
+xSensor:=DI_V404,
+xOnAuto:= OnAuto_V404,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V404,
+xDO_On=> DO_V404,
+wError=> wAlm_V404,
+xState=> xState_V404);
+
+Valve_V405
+(xManualMode:= ManualMode_V405,
+xSensor:=DI_V405,
+xOnAuto:= OnAuto_V405,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V405,
+xDO_On=> DO_V405,
+wError=> wAlm_V405,
+xState=> xState_V405);
+
+Valve_V406
+(xManualMode:= ManualMode_V406,
+xSensor:=DI_V406,
+xInterlock:= DI_AlkaliUpperLevel,
+xOnAuto:= OnAuto_V406,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V406,
+xDO_On=> DO_V406,
+wError=> wAlm_V406,
+xState=> xState_V406);
+
+Valve_V407
+(xManualMode:= ManualMode_V407,
+xSensor:=DI_V407,
+xInterlock:= DI_AccidUpperLevel,
+xOnAuto:= OnAuto_V407,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V407,
+xDO_On=> DO_V407,
+wError=> wAlm_V407,
+xState=> xState_V407);
+
+Valve_V408
+(xManualMode:= ManualMode_V408,
+xSensor:=DI_V408,
+xInterlock:= DI_UsedWaterUpperLevel,
+xOnAuto:= OnAuto_V408,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V408,
+xDO_On=> DO_V408,
+wError=> wAlm_V408,
+xState=> xState_V408);
+
+Valve_V409
+(xManualMode:= ManualMode_V409,
+xSensor:=DI_V409,
+wOffDelay:=1,
+xOnAuto:= OnAuto_V409,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V409,
+xDO_On=> DO_V409,
+wError=> wAlm_V409,
+xState=> xState_V409);
+
+Valve_V410
+(xManualMode:= ManualMode_V410,
+xSensor:=DI_V410,
+xOnAuto:= OnAuto_V410,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V410,
+xDO_On=> DO_V410,
+wError=> wAlm_V410,
+xState=> xState_V410);
+
+Valve_V411
+(xManualMode:= ManualMode_V411,
+xSensor:=DI_V411,
+xOnAuto:= OnAuto_V411,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V411,
+xDO_On=> DO_V411,
+wError=> wAlm_V411,
+xState=> xState_V411);
+
+Valve_V510
+(xManualMode:= ManualMode_V510,
+xSensor:=DI_V510,
+xOnAuto:= OnAuto_V510,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V510,
+xDO_On=> DO_V510,
+wError=> wAlm_V510,
+xState=> xState_V510);
+
+Valve_V511
+(xManualMode:= ManualMode_V511,
+xSensor:=DI_V511,
+xOnAuto:= OnAuto_V511,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V511,
+xDO_On=> DO_V511,
+wError=> wAlm_V511,
+xState=> xState_V511);
+
+Valve_V512
+(xManualMode:= ManualMode_V512,
+xSensor:=DI_V512,
+xOnAuto:= OnAuto_V512,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V512,
+xDO_On=> DO_V512,
+wError=> wAlm_V512,
+xState=> xState_V512);
+
+Valve_V513
+(xManualMode:= ManualMode_V513,
+xSensor:=DI_V513,
+xOnAuto:= OnAuto_V513,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V513,
+xDO_On=> DO_V513,
+wError=> wAlm_V513,
+xState=> xState_V513);
+
+Valve_V514
+(xManualMode:= ManualMode_V514,
+xSensor:=DI_V514,
+xOnAuto:= OnAuto_V514,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V514,
+xDO_On=> DO_V514,
+wError=> wAlm_V514,
+xState=> xState_V514);
+
+Valve_V515
+(xManualMode:= ManualMode_V515,
+xSensor:=DI_V515,
+xOnAuto:= OnAuto_V515,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V515,
+xDO_On=> DO_V515,
+wError=> wAlm_V515,
+xState=> xState_V515);
+
+
+
+(*
+xOnAutoWorking:= wWashingStateLine1 > 0 OR wWashingStateLine2 > 0
+					OR wWashingStateLine3 > 0 OR wWashingStateLine4 > 0
+					OR wDissolvingStateLine1 > 0 OR wDissolvingStateLine2 > 0
+					OR wDissolvingStateLine3 > 0 OR wDissolvingStateLine4 > 0
+					OR SelfWashState > 0;
+
+*)
+WaterSupplyValve(
+	xManualMode:= ManualMode_V501,
+	xOnAutoWorking:= (*xOnAutoWorking*) TRUE,
+	wOffDelay:= ,
+	xSensor:= DO_V501(*DI_V501*),
+	xStopSupplying:= xStopFillingWaterTank,
+	rWaterLevel:= CleanWaterLevel,
+	rWaterLevelNotOK:= rWaterLevelNotOK,
+	xUpperLevel:= DI_WaterUpperLevel,
+	xOnManual:= OnManual_V501,
+	xDO_On=> DO_V501,
+	xState=> xState_V501);
+
+IF NOT (xState_V101 OR xState_V102 OR xState_V103) THEN
+	xShowCycleLine:= TRUE;
+ELSE
+	xShowCycleLine:= FALSE;
+END_IF
+END_PROGRAM

@@ -1,0 +1,23 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Pump' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	Pump_FlawAutoSet_1:		REAL;
+	Pump_FlawAutoSet_2:		REAL;
+	Pump_FlawAutoSet_3:		REAL;
+	Pump_FlawAutoSet_4:		REAL;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'Pump' *)
+(* @CONNECTIONS := Pump
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

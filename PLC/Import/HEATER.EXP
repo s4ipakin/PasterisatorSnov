@@ -1,0 +1,21 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Heater' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	Heater_AutoSetT_1:					REAL;
+	Heater_AutoSetT_2:					REAL;
+	Heater_AutoSetT_3:					REAL;
+	Heater_AutoSetT_4:					REAL;
+
+END_VAR
+
+(* @OBJECT_END := 'Heater' *)
+(* @CONNECTIONS := Heater
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

@@ -1,0 +1,26 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'AO_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+
+	AO_PumpSpeedSet_1:			WORD;
+	AO_PumpSpeedSet_2:			WORD;
+	AO_PumpSpeedSet_3:			WORD;
+	AO_PumpSpeedSet_4:			WORD;
+
+	AO_HeaterPowerSet_1 AT %MW1060:			WORD;
+	AO_HeaterPowerSet_2 AT %MW1062:			WORD;
+	AO_HeaterPowerSet_3 AT %MW1064:			WORD;
+	AO_HeaterPowerSet_4 AT %MW1066:			WORD;
+END_VAR
+
+(* @OBJECT_END := 'AO_Vars' *)
+(* @CONNECTIONS := AO_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

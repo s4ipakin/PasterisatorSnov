@@ -1,0 +1,68 @@
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Valve' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbWaterSupplyValve
+VAR_INPUT
+	xManualMode:			BOOL;
+	wOffDelay:				WORD:=3;
+	xStopSupplying:		BOOL;
+	rWaterLevel:			REAL;
+	rWaterLevelNotOK:	REAL;
+	xUpperLevel:			BOOL;
+	xOnAutoWorking:		BOOL;
+	xSensor:				BOOL;
+END_VAR
+VAR_IN_OUT
+
+	xOnManual:			BOOL;
+
+END_VAR
+VAR_OUTPUT
+	xDO_On:				BOOL;
+	xState:					BOOL;
+END_VAR
+VAR
+	tfOffDelay:				TOF;
+	xDO_OnOld:			BOOL;
+	tnDelayState:			TON;
+	rtLevelDown:			R_TRIG;
+	xOnAuto:				BOOL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+IF xManualMode THEN
+	tfOffDelay(IN:=xOnManual, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+ELSIF xOnAutoWorking THEN
+	rtLevelDown(CLK:= rWaterLevel < rWaterLevelNotOK);
+	IF rWaterLevel < rWaterLevelNotOK THEN
+		xOnAuto:=TRUE;
+	END_IF
+	IF xUpperLevel THEN
+		xOnAuto:=FALSE;
+	END_IF
+
+	tfOffDelay(IN:=xOnAuto, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+END_IF
+
+xState:=xSensor;
+
+IF xStopSupplying THEN
+	xDO_On:=FALSE;
+END_IF
+(*
+IF NOT xOnAutoWorking THEN
+	xDO_On:=FALSE;
+END_IF
+*)
+(*
+IF xDO_OnOld <> xDO_On THEN
+	tnDelayState(IN:=TRUE, PT:=T#3S);
+	IF tnDelayState.Q THEN
+		xState:= 		xDO_On;
+		xDO_OnOld:=	xDO_On;
+		tnDelayState(IN:=FALSE);
+	END_IF
+END_IF
+*)
+END_FUNCTION_BLOCK

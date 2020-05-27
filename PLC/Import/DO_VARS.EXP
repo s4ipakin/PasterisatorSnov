@@ -1,0 +1,96 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'DO_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+	DO_PumpOn_1:			BOOL;
+	DO_PumpOn_2:			BOOL;
+	DO_PumpOn_3:			BOOL;
+	DO_PumpOn_4:			BOOL;
+
+	DO_PA11:					BOOL;
+	DO_PA12:					BOOL;
+	DO_PA1:					BOOL;
+	DO_PA2:					BOOL;
+	DO_PA3:					BOOL;
+	DO_PA4:					BOOL;
+
+	DO_V110	:	BOOL;
+	DO_V210	:	BOOL;
+	DO_V310	:	BOOL;
+	DO_V410	:	BOOL;
+	DO_V111	:	BOOL;
+	DO_V211	:	BOOL;
+	DO_V311	:	BOOL;
+	DO_V411	:	BOOL;
+			
+	DO_V101	:	BOOL;
+	DO_V102	:	BOOL;
+	DO_V103	:	BOOL;
+	DO_V104	:	BOOL;
+	DO_V105	:	BOOL;
+	DO_V106	:	BOOL;
+	DO_V107	:	BOOL;
+	DO_V108	:	BOOL;
+	DO_V109	:	BOOL;
+	DO_V201	:	BOOL;
+	DO_V202	:	BOOL;
+	DO_V203	:	BOOL;
+	DO_V204	:	BOOL;
+	DO_V205	:	BOOL;
+	DO_V206	:	BOOL;
+	DO_V207	:	BOOL;
+	DO_V208	:	BOOL;
+	DO_V209	:	BOOL;
+	DO_V301	:	BOOL;
+	DO_V302	:	BOOL;
+	DO_V303	:	BOOL;
+	DO_V304	:	BOOL;
+	DO_V305	:	BOOL;
+	DO_V306	:	BOOL;
+	DO_V307	:	BOOL;
+	DO_V308	:	BOOL;
+	DO_V309	:	BOOL;
+	DO_V401	:	BOOL;
+	DO_V402	:	BOOL;
+	DO_V403	:	BOOL;
+	DO_V404	:	BOOL;
+	DO_V405	:	BOOL;
+	DO_V406	:	BOOL;
+	DO_V407	:	BOOL;
+	DO_V408	:	BOOL;
+	DO_V409	:	BOOL;
+		
+	DO_V501	:	BOOL;
+		
+	DO_V511	:	BOOL;
+	DO_V510	:	BOOL;
+	DO_V512	:	BOOL;
+	DO_V513	:	BOOL;
+	DO_V514	:	BOOL;
+	DO_V515	:	BOOL;
+
+	DO_ReadyToWash:					BOOL;
+	DO_WashimgIsGoing:				BOOL;
+	DO_PumpIsWorking:					BOOL;
+
+	SwitchOnRemotePump_1	:	BOOL;
+	SwitchOnRemotePump_2	:	BOOL;
+	SwitchOnRemotePump_3	:	BOOL;
+	SwitchOnRemotePump_4	:	BOOL;
+
+	SwitchOnRemotePump_1_1	:	BOOL;
+	SwitchOnRemotePump_1_2	:	BOOL;
+	SwitchOnRemotePump_1_3	:	BOOL;
+
+
+END_VAR
+
+(* @OBJECT_END := 'DO_Vars' *)
+(* @CONNECTIONS := DO_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

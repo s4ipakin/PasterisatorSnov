@@ -1,0 +1,86 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Settings' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+END_VAR
+VAR_GLOBAL RETAIN
+
+	rDissolAlkaliConcSet 					AT %MW500:		REAL;	(* 12788 *)
+	rDissolWaterConcSet 				AT %MW502:		REAL;	(* 12790 *)
+	rDissolAccidConcSet 					AT %MW504:		REAL;	(* 12792 *)
+
+	rDissolAccidLevelSet 					AT %MW562	:	REAL;	(*	12850	*)
+	rDissolAlkaliLevelSet 					AT %MW564	:	REAL;	(*	12852	*)
+	rPA_WorkTime_Acc					AT %MW1566	:	WORD;	(*	13854	*)
+	rPA_WorkTime_Alk					AT %MW1570	:	WORD;	(*	13858	*)
+	rConcCheckTime						AT %MW570	:	WORD;	(*	12858	*)
+
+
+	wFlawSelWafing 						AT %MW506:		REAL;	(* 12794 *)
+	wFlawDissolving 						AT %MW508:		REAL;	(* 12796 *)
+	wUsedWaterLevelOK  				AT %MW510:		REAL:=90;	(* 12798 *)
+	wUsedWaterLevelNotOK  			AT %MW512:		REAL:=80;	(* 12800 *)
+	wAfterRinseConcAlk  					AT %MW514:		REAL:=30;	(* 12802 *)
+	wAfterRinseConcAcc  				AT %MW516:		REAL:=30;	(* 12804 *)
+
+	Heater_Kp								AT %MW518:		REAL:=5;	(* 12806 *)
+	Heater_Ki								AT %MW520:		REAL:=3;	(* 12808 *)
+	Heater_Kd								AT %MW522:		REAL;	(* 12810 *)
+	Heater_wMaxPower 					AT %MW524:		WORD:=100;	(* 12812 *)
+	Heater_wMinPower 					AT %MW526:		WORD;	(* 12814 *)
+	Pump_Kp								AT %MW528:		REAL:=0.1;	(* 12816 *)
+	Pump_Ki								AT %MW530:		REAL:=15;	(* 12818 *)
+	Pump_Kd								AT %MW532:		REAL;	(* 12820 *)
+	Pump_MaxSpeed 					AT %MW534:		WORD:=45;	(* 12822 *)
+	Pump_MinSpeed 						AT %MW536:		WORD;	(* 12824 *)
+
+	RemotePumpOnDelay				AT %MW572	:	WORD;	(*	12860	*)
+	RemotePumpOffDelay				AT %MW574	:	WORD;	(*	12862	*)
+
+	RemotePumpOnDelay2				AT %MW1572	:	WORD;	(*	12860	*)
+	RemotePumpOffDelay2				AT %MW1574	:	WORD;	(*	12862	*)
+	rConcSolutionStartOperationAlk		AT %MW576	:	REAL:=0.5;	(*	12864	*)
+	rConcSolutionStopoperationAlk		AT %MW578	:	REAL:=0.5;	(*	12866	*)
+	rConcSolutionStartOperationAcc		AT %MW580	:	REAL:=0.5;	(*	12868	*)
+	rConcSolutionStopoperationAcc		AT %MW582	:	REAL:=0.5;	(*	12870	*)
+
+	rAccidLevelOK		AT %MW1800	:	REAL;
+	rAlcaliLevelOK		AT %MW1804	:	REAL;
+
+	rAccidConcOK		AT %MW1808	:	REAL;
+	rAlcaliConcOK		AT %MW1812	:	REAL;
+
+	wPassword		AT %MW1816	:	WORD;
+
+
+	wDaysRemain AT %MW1820	:	WORD;
+	wDayOld: WORD;
+
+
+
+
+	SelfWashUsedWaterLevelOK 		AT %MW538:		REAL;	(* 12826 *)
+	SelfWashWaterLevelOK 				AT %MW540:		REAL;	(* 12828 *)
+	SelfWashUsedWaterLevelDrain 		AT %MW542:		REAL:=0.01;	(* 12830 *)
+	SelfWashWaterLevelDrain 			AT %MW544:		REAL:=0.01;	(* 12832 *)
+	SelfWashAlkaliLevelOK 				AT %MW546:		REAL;	(* 12834 *)
+	SelfWashAlkaliLevelDrain 			AT %MW548:		REAL;	(* 12836 *)
+	SelfWashAccidLevelOK 				AT %MW550:		REAL;	(* 12838 *)
+	SelfWashwAccidLevelDrain 			AT %MW552:		REAL;	(* 12840 *)
+	SelfWashwPumpFlawSet 			AT %MW554:		REAL;	(* 12842 *)
+	SelfWashByAlkaliTime  				AT %MW1556:		WORD;	(* 13844 *)
+	SelfWashByAccidTime  				AT %MW1558:		WORD;	(* 13846 *)
+	SelfWashByWaterTime_  				AT %MW1560:		WORD;	(* 13848 *)
+	rWaterLevelNotOK 					AT %MW1562:		REAL:=90;	(* 12850 *)
+	_SelfWashByWaterTime				AT %MW1200:		WORD;	(* 13848 *)
+
+END_VAR
+(* @OBJECT_END := 'HMI_Settings' *)
+(* @CONNECTIONS := HMI_Settings
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

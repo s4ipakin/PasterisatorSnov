@@ -1,0 +1,63 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Heater' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	Heater_Tget_1 				AT %MW100:		REAL;	(* 12388 *)
+	Heater_Tget_2 				AT %MW102:		REAL;	(* 12390 *)
+	Heater_Tget_3 				AT %MW104:		REAL;	(* 12392 *)
+	Heater_Tget_4 				AT %MW106:		REAL;	(* 12394 *)
+
+	Heater_Error_1 				AT %MW108:		WORD; (* 12396 *)
+	Heater_Error_2 				AT %MW110:		WORD; (* 12398 *)
+	Heater_Error_3 				AT %MW112:		WORD; (* 12400 *)
+	Heater_Error_4 				AT %MW114:		WORD; (* 12402 *)
+
+	Heater_xNoFeedback_1		AT %MW116:		BOOL;	(* 12404 *)
+	Heater_xNoFeedback_2 		AT %MW118:	  	BOOL;	(* 12406 *)
+	Heater_xNoFeedback_3 		AT %MW120:		BOOL;	(* 12408 *)
+	Heater_xNoFeedback_4 		AT %MW122:		BOOL;	(* 12410 *)
+
+	Heater_ManualSetT_1 		AT %MW124:		REAL;	(* 12412 *)
+	Heater_ManualSetT_2 		AT %MW126:		REAL;	(* 12414 *)
+	Heater_ManualSetT_3 		AT %MW128:	  	REAL;	(* 12416 *)
+	Heater_ManualSetT_4		AT %MW130:		REAL;	(* 12418 *)
+
+	Heater_PowerSet_1 			AT %MW132:		REAL;	(* 12420 *)
+	Heater_PowerSet_2 			AT %MW134:		REAL;	(* 12422 *)
+	Heater_PowerSet_3 			AT %MW136:		REAL;	(* 12424 *)
+	Heater_PowerSet_4 			AT %MW138:		REAL;	(* 12426 *)
+
+	HeaterPowerSet_1	AT %MW140	:	REAL;	(*	12428	*)
+	HeaterPowerSet_2	AT %MW142	:	REAL;	(*	12430	*)
+	HeaterPowerSet_3	AT %MW144	:	REAL;	(*	12432	*)
+	HeaterPowerSet_4	AT %MW146	:	REAL;	(*	12432	*)
+
+	Heater_BackTget_1	AT %MW148	:	REAL;	(*	12434	*)
+	Heater_BackTget_2	AT %MW150	:	REAL;	(*	12436	*)
+	Heater_BackTget_3	AT %MW152	:	REAL;	(*	12438	*)
+	Heater_BackTget_4	AT %MW154	:	REAL;	(*	12440	*)
+
+
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN
+
+
+
+	Heater_xManualMode_1		AT %MW1140	:			BOOL; 	(*	13428	*)
+	Heater_xManualMode_2		AT %MW1142	:			BOOL; 	(*	13430	*)
+	Heater_xManualMode_3		AT %MW1144	:			BOOL; 	(*	13432	*)
+	Heater_xManualMode_4		AT %MW1146	:			BOOL; 	(*	13434	*)
+END_VAR
+(* @OBJECT_END := 'HMI_Heater' *)
+(* @CONNECTIONS := HMI_Heater
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

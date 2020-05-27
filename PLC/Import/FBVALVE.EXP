@@ -1,0 +1,86 @@
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Valve' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbValve
+VAR_INPUT
+	xManualMode:			BOOL;
+	xOnAuto:				BOOL;
+	wOffDelay:				WORD:=3;
+	xSensor:				BOOL;
+	xInterlock:				BOOL;
+
+END_VAR
+VAR_IN_OUT
+
+	xOnManual:			BOOL;
+	xResetError:			BOOL;
+
+END_VAR
+VAR_OUTPUT
+	xDO_On:				BOOL;
+	xState:					BOOL;
+	wError:					WORD;
+END_VAR
+VAR
+	tfOffDelay:				TOF;
+	xDO_OnOld:			BOOL;
+	tnErrorNotOpen:		TON;
+	tnErrorNotClosed:		TON;
+	rtSwitchToManual:		R_TRIG;
+
+END_VAR
+(* @END_DECLARATION := '0' *)
+rtSwitchToManual(CLK:=xManualMode);
+IF rtSwitchToManual.Q THEN
+	xOnManual:=xOnAuto;
+END_IF
+
+IF xManualMode THEN
+	tfOffDelay(IN:=xOnManual, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+ELSE
+	xOnManual:=FALSE;
+	tfOffDelay(IN:=xOnAuto, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+END_IF
+xState:=xSensor;
+
+IF xInterlock THEN
+	xDO_On:=FALSE;
+	IF xOnAuto OR xOnManual THEN
+		wError.2:=TRUE;
+		xOnManual:=FALSE;
+	END_IF
+ELSE
+	wError.2:=FALSE;
+END_IF
+
+tnErrorNotOpen(IN:= xDO_On AND (NOT xSensor), PT:=t#15S);
+tnErrorNotClosed(IN:= (NOT xDO_On) AND xSensor, PT:=t#15S);
+
+IF tnErrorNotOpen.Q THEN
+	wError.0:=TRUE;
+END_IF
+IF tnErrorNotClosed.Q THEN
+	wError.1:=TRUE;
+END_IF
+
+IF xResetAlmAll THEN
+	tnErrorNotOpen(IN:=FALSE);
+	tnErrorNotClosed(IN:=FALSE);
+	wError:=0;
+END_IF
+
+
+
+(*
+IF xDO_OnOld <> xDO_On THEN
+	tnDelayState(IN:=TRUE, PT:=T#3S);
+	IF tnDelayState.Q THEN
+		xState:= 		xDO_On;
+		xDO_OnOld:=	xDO_On;
+		tnDelayState(IN:=FALSE);
+	END_IF
+END_IF
+*)
+END_FUNCTION_BLOCK

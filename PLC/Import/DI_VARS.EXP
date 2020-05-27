@@ -1,0 +1,86 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'DI_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+
+
+	DI_V101	:	BOOL;
+	DI_V102	:	BOOL;
+	DI_V103	:	BOOL;
+	DI_V104	:	BOOL;
+	DI_V105	:	BOOL;
+	DI_V106	:	BOOL;
+	DI_V107	:	BOOL;
+	DI_V108	:	BOOL;
+	DI_V109	:	BOOL;
+	DI_V110	:	BOOL;
+	DI_V111	:	BOOL;
+	DI_V201	:	BOOL;
+	DI_V202	:	BOOL;
+	DI_V203	:	BOOL;
+	DI_V204	:	BOOL;
+	DI_V205	:	BOOL;
+	DI_V206	:	BOOL;
+	DI_V207	:	BOOL;
+	DI_V208	:	BOOL;
+	DI_V209	:	BOOL;
+	DI_V210	:	BOOL;
+	DI_V211	:	BOOL;
+	DI_V301	:	BOOL;
+	DI_V302	:	BOOL;
+	DI_V303	:	BOOL;
+	DI_V304	:	BOOL;
+	DI_V305	:	BOOL;
+	DI_V306	:	BOOL;
+	DI_V307	:	BOOL;
+	DI_V308	:	BOOL;
+	DI_V309	:	BOOL;
+	DI_V310	:	BOOL;
+	DI_V311	:	BOOL;
+	DI_V401	:	BOOL;
+	DI_V402	:	BOOL;
+	DI_V403	:	BOOL;
+	DI_V404	:	BOOL;
+	DI_V405	:	BOOL;
+	DI_V406	:	BOOL;
+	DI_V407	:	BOOL;
+	DI_V408	:	BOOL;
+	DI_V409	:	BOOL;
+	DI_V410	:	BOOL;
+	DI_V411	:	BOOL;
+	DI_V501	:	BOOL;
+	DI_V510	:	BOOL;
+	DI_V511	:	BOOL;
+	DI_V512	:	BOOL;
+	DI_V513	:	BOOL;
+	DI_V514	:	BOOL;
+	DI_V515	:	BOOL;
+
+
+	Pump_InvNorm_1:	BOOL;
+	Pump_InvNorm_2:	BOOL;
+	Pump_InvNorm_3:	BOOL;
+	Pump_InvNorm_4:	BOOL;
+
+	Permition_Line_1:	BOOL;
+	Permition_Line_2:	BOOL;
+	Permition_Line_3:	BOOL;
+	Permition_Line_4:	BOOL;
+	Permition_Line_5:	BOOL;
+
+
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'DI_Vars' *)
+(* @CONNECTIONS := DI_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

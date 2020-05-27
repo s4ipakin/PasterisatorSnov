@@ -1,0 +1,87 @@
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Heater' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbHeater
+VAR_INPUT
+	xManualMode:			BOOL;
+	xNoFeedback:			BOOL;
+	wTautoSet:			REAL;
+	wPowerManualSet:	REAL;
+	wKp:					REAL;
+	wKi:					REAL;
+	wKd:					REAL;
+	wMaxPower:			WORD;
+	wMinPower:			WORD;
+	wTget:					REAL;
+	wFlawGet:				REAL;
+	xInterlock:				BOOL;
+	xPumpWorking:		BOOL;
+END_VAR
+VAR_IN_OUT
+	wTmanualSet:			REAL;
+END_VAR
+VAR_OUTPUT
+	wAO_Power:			REAL;
+	wError:					WORD;
+END_VAR
+VAR
+	fbAutoPID:				fbPID;
+	tnNoFlaw:				TON;
+END_VAR
+(* @END_DECLARATION := '0' *)
+IF xManualMode THEN
+	IF (wTmanualSet > 0 OR xNoFeedback) AND wError = 0 THEN
+		fbAutoPID(
+			ACTUAL:= wTget,
+			SET_POINT:= wTmanualSet,
+			KP:= wKp,
+			TN:= wKi,
+			TV:= wKd,
+			Y_MANUAL:= wPowerManualSet,
+			Y_OFFSET:= ,
+			Y_MIN:= wMinPower,
+			Y_MAX:= wMaxPower,
+			MANUAL:= xNoFeedback,
+			RESET:= ,
+			Y=> ,
+			LIMITS_ACTIVE=> ,
+			OVERFLOW=> );
+			wAO_Power:= fbAutoPID.Y;
+	ELSE
+		wAO_Power:=0;
+	END_IF
+ELSE
+	wTmanualSet:=wTautoSet;
+	IF wTautoSet > 0 AND wError = 0 THEN
+		fbAutoPID(
+			ACTUAL:= wTget,
+			SET_POINT:= wTautoSet,
+			KP:= wKp,
+			TN:= wKi,
+			TV:= wKd,
+			Y_MANUAL:= ,
+			Y_OFFSET:= ,
+			Y_MIN:= wMinPower,
+			Y_MAX:= wMaxPower,
+			MANUAL:=FALSE ,
+			RESET:= ,
+			Y=> ,
+			LIMITS_ACTIVE=> ,
+			OVERFLOW=> );
+			wAO_Power:= fbAutoPID.Y;
+	ELSE
+		wAO_Power:=0;
+	END_IF
+END_IF
+
+
+
+tnNoFlaw(IN:=  (NOT xPumpWorking) AND (wTautoSet>0), PT:=T#1s, Q=>wError.0);
+(*
+IF tnNoFlaw.Q THEN
+	wError.0:=TRUE;
+END_IF
+*)
+END_FUNCTION_BLOCK

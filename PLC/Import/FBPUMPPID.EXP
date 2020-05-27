@@ -1,0 +1,157 @@
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbPumpPID
+VAR_INPUT
+	xManualMode:			BOOL;
+	xOnAuto:				BOOL;
+	xInRotationFlg:		BOOL;
+
+	xNoFeedback:			BOOL;
+	wFlawAutoSet:		REAL;
+	wFlawManualSet:		REAL;
+	wVelocitySet:			REAL;
+	wFlawGet:				REAL;
+	wKp:					REAL;
+	wKi:					REAL;
+	wKd:					REAL;
+	wMaxSpeed:			WORD;
+	wMinSpeed:			WORD;
+
+	xInvertorNorm:			BOOL;
+
+	(*xInterlock:				BOOL;*)
+END_VAR
+VAR_IN_OUT
+
+	xOnManual:			BOOL;
+	xResetErr:				BOOL;
+
+END_VAR
+VAR_OUTPUT
+	xDO_On:				BOOL;
+	wAO_SpeedSet:		REAL;
+	wError:					WORD;
+	wState:				WORD;
+END_VAR
+VAR
+	fbAutoPID:				fbPID;
+	(*tnInterlockOn:			TON;*)
+	tnNoFlaw:				TON;
+	rSetPrm:				REAL;
+	xSetManual:			BOOL;
+	rtManual:				R_TRIG;
+	rtAuto:					R_TRIG;
+	ftManual:				F_TRIG;
+	ftAuto:					F_TRIG;
+	RESET: BOOL;
+	LIN_TRAFO:LIN_TRAFO;
+END_VAR
+(* @END_DECLARATION := '0' *)
+rtManual(CLK:=xOnManual);
+rtAuto(CLK:= xOnAuto);
+ftManual(CLK:=xOnManual);
+ftAuto(CLK:= xOnAuto);
+
+IF ftManual.Q OR ftAuto.Q THEN
+	RESET:=TRUE;;
+END_IF
+IF rtManual.Q OR rtAuto.Q THEN
+	RESET:=FALSE;
+END_IF
+
+IF xManualMode THEN
+
+		fbAutoPID(
+		ACTUAL:= wFlawGet,
+		SET_POINT:= (*wFlawManualSet*)rSetPrm,
+		KP:= wKp,
+		TN:= wKi,
+		TV:= wKd,
+		Y_MANUAL:=  wVelocitySet,
+		Y_OFFSET:= ,
+		Y_MIN:= wMinSpeed,
+		Y_MAX:= wMaxSpeed,
+		MANUAL:= xNoFeedback,
+		RESET:= RESET,
+		Y=> ,
+		LIMITS_ACTIVE=> ,
+		OVERFLOW=> );
+		(*RESET:=FALSE;*)
+		wAO_SpeedSet:= fbAutoPID.Y;
+
+	IF xOnManual AND wError = 0 THEN
+		xDO_On:=TRUE;
+		rSetPrm:=wFlawManualSet;
+	ELSE
+		wAO_SpeedSet:=0;
+		rSetPrm:=0;
+		xDO_On:= FALSE;
+	END_IF
+
+ELSE
+
+	(*IF wFlawAutoSet > 0 THEN*)
+		fbAutoPID(
+		ACTUAL:= wFlawGet,
+		SET_POINT:= (*wFlawAutoSet*)rSetPrm,
+		KP:= wKp,
+		TN:= wKi,
+		TV:= wKd,
+		Y_MANUAL:= ,
+		Y_OFFSET:= ,
+		Y_MIN:= wMinSpeed,
+		Y_MAX:= wMaxSpeed,
+		MANUAL:= FALSE,
+		RESET:=RESET ,
+		Y=> ,
+		LIMITS_ACTIVE=> ,
+		OVERFLOW=> );
+		(*RESET:=FALSE;*)
+		wAO_SpeedSet:= fbAutoPID.Y;
+	(*ELSE
+		wAO_SpeedSet:=0;
+	END_IF*)
+	IF xOnAuto AND wError = 0 THEN
+		xDO_On:=TRUE;
+		rSetPrm:=wFlawAutoSet;
+	ELSE
+		wAO_SpeedSet:=0;
+		rSetPrm:=0;
+		xDO_On:= FALSE;
+	END_IF
+	xOnManual:=xOnAuto;
+
+END_IF
+
+
+
+
+tnNoFlaw(IN:=xDO_On AND (wFlawGet = 0), PT:=T#300s, Q=>wError.0);
+
+
+IF (xDO_On AND (NOT xInRotationFlg)) OR (xInRotationFlg AND (NOT xDO_On)) THEN
+	wState:=1;
+ELSIF xDO_On AND xInRotationFlg THEN
+	wState:=2;
+ELSIF NOT (xDO_On OR xInRotationFlg) THEN
+	wState:=0;
+END_IF
+
+IF NOT xInvertorNorm THEN
+	wError.1:=TRUE;
+ELSE
+	wError.1:=FALSE;
+END_IF
+IF xResetErr THEN
+
+	wError:=0;
+END_IF
+(*
+IF tnNoFlaw.Q THEN
+	wError.0:=TRUE;
+END_IF
+*)
+END_FUNCTION_BLOCK

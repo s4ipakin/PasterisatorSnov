@@ -1,0 +1,117 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Pump' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+	Pump_FlawGet_1 			AT %MW300:		REAL;	(* 12588 *)
+	Pump_FlawGet_2 			AT %MW302:		REAL;	(* 12590 *)
+	Pump_FlawGet_3 			AT %MW304:		REAL;	(* 12592 *)
+	Pump_FlawGet_4 			AT %MW306:		REAL;	(* 12594 *)
+
+	Pump_PowerGet:		REAL;
+
+	Pump_OnManual_1 			AT %MW308:		BOOL;	(* 12596 *)
+	Pump_OnManual_2 			AT %MW310:		BOOL;	(* 12598 *)
+	Pump_OnManual_3 			AT %MW312:		BOOL;	(* 12600 *)
+	Pump_OnManual_4 			AT %MW314:		BOOL;	(* 12602 *)
+
+	Pump_NoFeedback_1 		AT %MW316:		BOOL;	(* 12604 *)
+	Pump_NoFeedback_2 		AT %MW318:		BOOL;	(* 12606 *)
+	Pump_NoFeedback_3 		AT %MW320:		BOOL;	(* 12608 *)
+	Pump_NoFeedback_4 		AT %MW322:		BOOL;	(* 12610 *)
+
+	Pump_Error_1 				AT %MW324:		WORD; (* 12612 *)
+	Pump_Error_2 				AT %MW326:		WORD; (* 12614 *)
+	Pump_Error_3 				AT %MW328:		WORD; (* 12616 *)
+	Pump_Error_4 				AT %MW330:		WORD; (* 12618 *)
+
+	Pump_OnAuto_1				AT %MW356	:	BOOL;	(*	12644	*)
+	Pump_OnAuto_2				AT %MW358	:	BOOL;	(*	12646	*)
+	Pump_OnAuto_3				AT %MW360	:	BOOL;	(*	12648	*)
+	Pump_OnAuto_4				AT %MW362	:	BOOL;	(*	12650	*)
+
+	Pump_BackFlawGet_1		AT %MW364	:	REAL;	(*	12652	*)
+	Pump_BackFlawGet_2		AT %MW366	:	REAL;	(*	12654	*)
+	Pump_BackFlawGet_3		AT %MW368	:	REAL;	(*	12656	*)
+	Pump_BackFlawGet_4		AT %MW370	:	REAL;	(*	12658	*)
+
+	PumpSpeedSet_1			AT %MW372	:	REAL;	(*	12660	*)
+	PumpSpeedSet_2			AT %MW374	:	REAL;	(*	12662	*)
+	PumpSpeedSet_3			AT %MW376	:	REAL;	(*	12664	*)
+	PumpSpeedSet_4			AT %MW378	:	REAL;	(*	12666	*)
+
+	Pump_FeedbackOn_1	AT %MW380	:	BOOL;	(*	12668	*)
+	Pump_FeedbackOn_2	AT %MW382	:	BOOL;	(*	12670	*)
+	Pump_FeedbackOn_3	AT %MW384	:	BOOL;	(*	12672	*)
+	Pump_FeedbackOn_4	AT %MW386	:	BOOL;	(*	12674	*)
+
+	PA_OnManual_1 			AT %MW388	:	BOOL;	(*	12676	*)
+	PA_OnManual_2 			AT %MW390	:	BOOL;	(*	12678	*)
+	PA_OnManual_3 			AT %MW392	:	BOOL;	(*	12680	*)
+	PA_OnManual_4 			AT %MW394	:	BOOL;	(*	12682	*)
+
+	PA_OnManual_11 		AT %MW396	:	BOOL;	(*	12684	*)
+	PA_OnManual_12			AT %MW398	:	BOOL;	(*	12686	*)
+
+	PA_OnAuto_1				AT %MW1000	:	BOOL;	(*	13288	*)
+	PA_OnAuto_2				AT %MW1002	:	BOOL;	(*	13290	*)
+	PA_OnAuto_3				AT %MW1004	:	BOOL;	(*	13292	*)
+	PA_OnAuto_4				AT %MW1006	:	BOOL;	(*	13294	*)
+
+	PA_OnAuto_11			AT %MW1008	:	BOOL;	(*	13296	*)
+	PA_OnAuto_12			AT %MW1010	:	BOOL;	(*	13298	*)
+
+	PA_State_1			AT %MW1012	:	BOOL;	(*	13300	*)
+	PA_State_2			AT %MW1014	:	BOOL;	(*	13302	*)
+	PA_State_3			AT %MW1016	:	BOOL;	(*	13304	*)
+	PA_State_4			AT %MW1018	:	BOOL;	(*	13306	*)
+
+	PA_State_11			AT %MW1020	:	BOOL;	(*	13308	*)
+	PA_State_12			AT %MW1022	:	BOOL;	(*	13310	*)
+
+	Pump_State_1		AT %MW1024	:	WORD;	(*	13312	*)
+	Pump_State_2		AT %MW1026	:	WORD;	(*	13314	*)
+	Pump_State_3		AT %MW1028	:	WORD;	(*	13316	*)
+	Pump_State_4		AT %MW1030	:	WORD;	(*	13318	*)
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN PERSISTENT
+
+
+
+	Pump_ManualMode_1 		AT %MW332:		BOOL;	(* 12620 *)
+	Pump_ManualMode_2 		AT %MW334:		BOOL;	(* 12622 *)
+	Pump_ManualMode_3 		AT %MW336:		BOOL;	(* 12624 *)
+	Pump_ManualMode_4 		AT %MW338:		BOOL;	(* 12626 *)
+
+	Pump_FlawManualSet_1 	AT %MW340:		WORD; (* 12628 *)
+	Pump_FlawManualSet_2 	AT %MW342:		WORD; (* 12630 *)
+	Pump_FlawManualSet_3 	AT %MW344:		WORD; (* 12632 *)
+	Pump_FlawManualSet_4 	AT %MW346:		WORD; (* 12634 *)
+
+	Pump_VelocitySet_1 			AT %MW348:		WORD; (* 12636 *)
+	Pump_VelocitySet_2 			AT %MW350:		WORD; (* 12638 *)
+	Pump_VelocitySet_3 			AT %MW352:		WORD; (* 12640 *)
+	Pump_VelocitySet_4 			AT %MW354:		WORD; (* 12642 *)
+
+	PA_ManualMode_1	AT %MW1032	:	BOOL;	(*	13320	*)
+	PA_ManualMode_2	AT %MW1034	:	BOOL;	(*	13322	*)
+	PA_ManualMode_3	AT %MW1036	:	BOOL;	(*	13324	*)
+	PA_ManualMode_4	AT %MW1038	:	BOOL;	(*	13326	*)
+
+	PA_ManualMode_11	AT %MW1040	:	BOOL;	(*	13328	*)
+	PA_ManualMode_12	AT %MW1042	:	BOOL;	(*	13330	*)
+
+	sCheckSrting	AT %MW1050	:	WORD;	(*	13338	*)
+
+END_VAR
+(* @OBJECT_END := 'HMI_Pump' *)
+(* @CONNECTIONS := HMI_Pump
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

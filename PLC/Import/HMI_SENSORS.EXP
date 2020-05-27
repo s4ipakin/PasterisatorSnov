@@ -1,0 +1,43 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Sensors' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	Conc_Line1	AT %MW1100	:	REAL;	(*	13388	*)
+	Conc_Line2	AT %MW1102	:	REAL;	(*	13390	*)
+	Conc_Line3	AT %MW1104	:	REAL;	(*	13392	*)
+	Conc_Line4	AT %MW1106	:	REAL;	(*	13394	*)
+
+	CleanWaterLevel		AT %MW1108	:	REAL;	(*	13396	*)
+	UsedWaterLevel		AT %MW1110	:	REAL;	(*	13398	*)
+	AccidLevel		AT %MW1112	:	REAL;	(*	13400	*)
+	AlkaliLevel		AT %MW1114	:	REAL;	(*	13402	*)
+
+	Temp_Accid	AT %MW1116	:	REAL;	(*	13404	*)
+	Temp_Alkali	AT %MW1118	:	REAL;	(*	13406	*)
+	Temp_Line3	AT %MW1120	:	REAL;	(*	13408	*)
+	Temp_Line4	AT %MW1122	:	REAL;	(*	13410	*)
+
+	DI_FeedBackSwitchLine1	AT %MW1124	:	BOOL;	(*	13412	*)
+	DI_FeedBackSwitchLine2	AT %MW1126	:	BOOL;	(*	13414	*)
+	DI_FeedBackSwitchLine3	AT %MW1128	:	BOOL;	(*	13416	*)
+	DI_FeedBackSwitchLine4	AT %MW1130	:	BOOL;	(*	13418	*)
+
+	DI_AlkaliUpperLevel		AT %MW1132	:	BOOL;	(*	13420	*)
+	DI_AccidUpperLevel		AT %MW1134	:	BOOL;	(*	13422	*)
+	DI_WaterUpperLevel		AT %MW1136	:	BOOL;	(*	13424	*)
+	DI_UsedWaterUpperLevel		AT %MW1138	:	BOOL;	(*	13426	*)
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Sensors' *)
+(* @CONNECTIONS := HMI_Sensors
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

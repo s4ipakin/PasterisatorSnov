@@ -1,0 +1,75 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Alarms' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	xResetAlmAll	AT %MW600	:	BOOL;	(*	12888	*)
+						
+	wAlm_V101	AT %MW601	:	WORD;	(*	12889	*)
+	wAlm_V102	AT %MW602	:	WORD;	(*	12890	*)
+	wAlm_V103	AT %MW603	:	WORD;	(*	12891	*)
+	wAlm_V104	AT %MW604	:	WORD;	(*	12892	*)
+	wAlm_V105	AT %MW605	:	WORD;	(*	12893	*)
+	wAlm_V106	AT %MW606	:	WORD;	(*	12894	*)
+	wAlm_V107	AT %MW607	:	WORD;	(*	12895	*)
+	wAlm_V108	AT %MW608	:	WORD;	(*	12896	*)
+	wAlm_V109	AT %MW609	:	WORD;	(*	12897	*)
+	wAlm_V110	AT %MW610	:	WORD;	(*	12898	*)
+	wAlm_V111	AT %MW611	:	WORD;	(*	12899	*)
+	wAlm_V201	AT %MW612	:	WORD;	(*	12900	*)
+	wAlm_V202	AT %MW613	:	WORD;	(*	12901	*)
+	wAlm_V203	AT %MW614	:	WORD;	(*	12902	*)
+	wAlm_V204	AT %MW615	:	WORD;	(*	12903	*)
+	wAlm_V205	AT %MW616	:	WORD;	(*	12904	*)
+	wAlm_V206	AT %MW617	:	WORD;	(*	12905	*)
+	wAlm_V207	AT %MW618	:	WORD;	(*	12906	*)
+	wAlm_V208	AT %MW619	:	WORD;	(*	12907	*)
+	wAlm_V209	AT %MW620	:	WORD;	(*	12908	*)
+	wAlm_V210	AT %MW621	:	WORD;	(*	12909	*)
+	wAlm_V211	AT %MW622	:	WORD;	(*	12910	*)
+	wAlm_V301	AT %MW623	:	WORD;	(*	12911	*)
+	wAlm_V302	AT %MW624	:	WORD;	(*	12912	*)
+	wAlm_V303	AT %MW625	:	WORD;	(*	12913	*)
+	wAlm_V304	AT %MW626	:	WORD;	(*	12914	*)
+	wAlm_V305	AT %MW627	:	WORD;	(*	12915	*)
+	wAlm_V306	AT %MW628	:	WORD;	(*	12916	*)
+	wAlm_V307	AT %MW629	:	WORD;	(*	12917	*)
+	wAlm_V308	AT %MW630	:	WORD;	(*	12918	*)
+	wAlm_V309	AT %MW631	:	WORD;	(*	12919	*)
+	wAlm_V310	AT %MW632	:	WORD;	(*	12920	*)
+	wAlm_V311	AT %MW633	:	WORD;	(*	12921	*)
+	wAlm_V401	AT %MW634	:	WORD;	(*	12922	*)
+	wAlm_V402	AT %MW635	:	WORD;	(*	12923	*)
+	wAlm_V403	AT %MW636	:	WORD;	(*	12924	*)
+	wAlm_V404	AT %MW637	:	WORD;	(*	12925	*)
+	wAlm_V405	AT %MW638	:	WORD;	(*	12926	*)
+	wAlm_V406	AT %MW639	:	WORD;	(*	12927	*)
+	wAlm_V407	AT %MW640	:	WORD;	(*	12928	*)
+	wAlm_V408	AT %MW641	:	WORD;	(*	12929	*)
+	wAlm_V409	AT %MW642	:	WORD;	(*	12930	*)
+	wAlm_V410	AT %MW643	:	WORD;	(*	12931	*)
+	wAlm_V411	AT %MW644	:	WORD;	(*	12932	*)
+	wAlm_V501	AT %MW645	:	WORD;	(*	12933	*)
+	wAlm_V510	AT %MW646	:	WORD;	(*	12934	*)
+	wAlm_V511	AT %MW647	:	WORD;	(*	12935	*)
+	wAlm_V512	AT %MW648	:	WORD;	(*	12936	*)
+	wAlm_V513	AT %MW649	:	WORD;	(*	12937	*)
+	wAlm_V514	AT %MW650	:	WORD;	(*	12938	*)
+	wAlm_V515	AT %MW651	:	WORD;	(*	12939	*)
+
+	wCheckAlm:			WORD;
+
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Alarms' *)
+(* @CONNECTIONS := HMI_Alarms
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)

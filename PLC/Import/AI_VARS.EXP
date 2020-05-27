@@ -1,0 +1,52 @@
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'AI_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	AI_Conc_Line1:			WORD;
+	AI_Conc_Line2:			WORD;
+	AI_Conc_Line3:			WORD;
+	AI_Conc_Line4:			WORD;
+
+	AI_CleanWaterLevel:		WORD;
+	AI_UsedWaterLevel:		WORD;
+	AI_AccidLevel:				WORD;
+	AI_AlkaliLevel:				WORD;
+
+	AI_Temp_Accid:			WORD;
+	AI_Temp_Alkali:			WORD;
+	AI_Temp_Line3:			WORD;
+	AI_Temp_Line4:			WORD;
+
+	AI_Heater_Tget_1 	:	WORD;
+	AI_Heater_Tget_2 	:	WORD;
+	AI_Heater_Tget_3 	:	WORD;
+	AI_Heater_Tget_4 	:	WORD;
+
+	AI_Heater_BackTget_1	:	WORD;
+	AI_Heater_BackTget_2	:	WORD;
+	AI_Heater_BackTget_3	:	WORD;
+	AI_Heater_BackTget_4	:	WORD;
+
+
+
+	AI_Flaw_Line1:			WORD;
+	AI_Flaw_Line2:			WORD;
+	AI_Flaw_Line3:			WORD;
+	AI_Flaw_Line4:			WORD;
+
+	AI_PowerGetLine_1:		WORD;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'AI_Vars' *)
+(* @CONNECTIONS := AI_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
