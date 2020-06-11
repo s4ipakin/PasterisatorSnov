@@ -1,0 +1,18 @@
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Simulation_' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbValveSim
+VAR_INPUT
+	xDO:	BOOL;
+END_VAR
+VAR_OUTPUT
+	xSensor:	BOOL;
+END_VAR
+VAR
+	tnOn:	TON;
+END_VAR
+(* @END_DECLARATION := '0' *)
+tnOn(IN:=xDO, pt:=t#2s, Q=>xSensor);
+END_FUNCTION_BLOCK
