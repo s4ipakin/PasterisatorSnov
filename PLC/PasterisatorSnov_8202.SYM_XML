@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<CoDeSysSymbolTable>
+	<SymbolHeader>
+		<Version>-1</Version>
+		<ProjectId>1648408</ProjectId>
+		<WorkbenchVersion>2.3.9.55</WorkbenchVersion>
+		<CompilerVersion>2.3.9.55</CompilerVersion>
+	</SymbolHeader>
+	<SymbolTypeList>
+		<TypeSimple TypeId="0" Size="2">WORD</TypeSimple>
+		<TypeSimple TypeId="1" Size="1">BOOL</TypeSimple>
+		<TypeSimple TypeId="2" Size="4">REAL</TypeSimple>
+	</SymbolTypeList>
+	<SymbolVarList>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="808">.ColerPressure_PT1</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="220">.Cooler_Error_1</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1092">.Cooler_Kd</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1084">.Cooler_Ki</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1076">.Cooler_Kp</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="296">.Cooler_ManualSetP</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="252">.Cooler_ManualSetT_1</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="268">.Cooler_PowerSet_1</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1100">.Cooler_wMaxPower</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1108">.Cooler_wMinPower</Var>
+		<Var Type="1" Flags="33554472" Access="98" RefId="0" Offset="2284">.Cooler_xManualMode_2</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="236">.Cooler_xNoFeedback_1</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="216">.Heater_Error_1</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1044">.Heater_Kd</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1040">.Heater_Ki</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1036">.Heater_Kp</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="288">.Heater_ManualSetP</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="248">.Heater_ManualSetT_1</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="264">.Heater_PowerSet_1</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1048">.Heater_wMaxPower</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1052">.Heater_wMinPower</Var>
+		<Var Type="1" Flags="33554472" Access="98" RefId="0" Offset="2280">.Heater_xManualMode_1</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="232">.Heater_xNoFeedback_1</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="1706">.ManualMode_V101</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="1708">.ManualMode_V102</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="1710">.ManualMode_V103</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="1712">.ManualMode_V104</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="1714">.ManualMode_V105</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="1716">.ManualMode_V106</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="1718">.ManualMode_V107</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1604">.OnAuto_V101</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1606">.OnAuto_V102</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1608">.OnAuto_V103</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1610">.OnAuto_V104</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1612">.OnAuto_V105</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1614">.OnAuto_V106</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1616">.OnAuto_V107</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1400">.OnManual_V101</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1402">.OnManual_V102</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1404">.OnManual_V103</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1406">.OnManual_V104</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1408">.OnManual_V105</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1410">.OnManual_V106</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1412">.OnManual_V107</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="800">.OutPressure_PT1</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1220">.Pump_Error_P1</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1218">.Pump_Error_UZ1</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="764">.Pump_FeedbackOn_P1</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="760">.Pump_FeedbackOn_UZ1</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="600">.Pump_FlawGet_1</Var>
+		<Var Type="0" Flags="33816616" Access="98" RefId="0" Offset="680">.Pump_FlawManualSet_1</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1064">.Pump_Kd</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1060">.Pump_Ki</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1056">.Pump_Kp</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="668">.Pump_ManualMode_P1</Var>
+		<Var Type="1" Flags="33816616" Access="98" RefId="0" Offset="664">.Pump_ManualMode_UZ1</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1068">.Pump_MaxSpeed</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1072">.Pump_MinSpeed</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="632">.Pump_NoFeedback_UZ1</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="716">.Pump_OnAuto_P1</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="712">.Pump_OnAuto_UZ1</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="620">.Pump_OnManual_P1</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="616">.Pump_OnManual_UZ1</Var>
+		<Var Type="2" Flags="33554496" Access="98" RefId="4" Offset="3152">.Pump_PowerGet</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="2052">.Pump_State_P1</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="2048">.Pump_State_UZ1</Var>
+		<Var Type="0" Flags="33816616" Access="98" RefId="0" Offset="696">.Pump_VelocitySet_1</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="748">.PumpSpeedSet_P1</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="744">.PumpSpeedSet_UZ1</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="280">.rTcooler</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="204">.rTempAfterHeat</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="208">.rTempAfterSpiral</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="200">.rTempBeforeHeat</Var>
+		<Var Type="2" Flags="33554464" Access="98" RefId="0" Offset="212">.rTempOut</Var>
+		<Var Type="2" Flags="33554472" Access="98" RefId="0" Offset="1120">.rThreasholdPressure</Var>
+		<Var Type="2" Flags="33554500" Access="98" RefId="4" Offset="204">.rVersion</Var>
+		<Var Type="0" Flags="33816616" Access="98" RefId="0" Offset="2100">.sCheckSrting</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1202">.wAlm_V101</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1204">.wAlm_V102</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1206">.wAlm_V103</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1208">.wAlm_V104</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1210">.wAlm_V105</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1212">.wAlm_V106</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1214">.wAlm_V107</Var>
+		<Var Type="0" Flags="33554496" Access="98" RefId="4" Offset="3148">.wCheckAlm</Var>
+		<Var Type="0" Flags="33554504" Access="98" RefId="3" Offset="0">.wDayOld</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="3640">.wDaysRemain</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="3632">.wPassword</Var>
+		<Var Type="0" Flags="33554464" Access="98" RefId="0" Offset="1216">.wProcessAlm</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1140">.wPushingTime</Var>
+		<Var Type="0" Flags="33554472" Access="98" RefId="0" Offset="1128">.wWatingFillingPipelineTime</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1222">.xResetAlmAll</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1502">.xState_V101</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1504">.xState_V102</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1506">.xState_V103</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1508">.xState_V104</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1510">.xState_V105</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1512">.xState_V106</Var>
+		<Var Type="1" Flags="33554464" Access="98" RefId="0" Offset="1514">.xState_V107</Var>
+		<Var Type="1" Flags="33554496" Access="98" RefId="4" Offset="3150">.xStopFillingWaterTank</Var>
+	</SymbolVarList>
+	<SymbolTaskList/>
+	<SymbolTargetSettings>
+		<MaxNumberOfPOUs>4096</MaxNumberOfPOUs>
+		<Segments>
+			<Segment Area="1" RefId="0" Address="0" Size="24576" Attributes="0"/>
+			<Segment Area="0" RefId="1" Address="0" Size="65536" Attributes="0"/>
+			<Segment Area="0" RefId="2" Address="65536" Size="65536" Attributes="0"/>
+			<Segment Area="1" RefId="3" Address="24576" Size="106484" Attributes="2"/>
+			<Segment Area="0" RefId="4" Address="131072" Size="67108864" Attributes="1"/>
+		</Segments>
+	</SymbolTargetSettings>
+</CoDeSysSymbolTable>

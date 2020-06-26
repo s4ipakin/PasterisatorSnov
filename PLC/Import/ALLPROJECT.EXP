@@ -1,0 +1,3061 @@
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/_ExtraFB\/ControlFB' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbPID
+VAR_INPUT
+	ACTUAL :REAL;		(* actual value, process variable *)
+	SET_POINT:REAL;	(* desired value, set point *)
+	KP:REAL;				(* proportionality const. (P)*)
+	TN:REAL;				(* reset time (I) in sec *)
+	TV:REAL;				(* rate time, derivative time (D) in sec*)
+	Y_MANUAL:REAL;		(* Y is set to this value as long as MANUAL=TRUE *)
+	Y_OFFSET:REAL;		(* offset for manipulated variable *)
+	Y_MIN:REAL;			(* minimum value for manipulated variable *)
+	Y_MAX:REAL;			(* maximum value for manipulated variable *)
+	MANUAL:BOOL;		(* 	TRUE: manual: Y is not influenced by controller,
+								FALSE: controller determines Y *)
+	RESET:BOOL;			(* reset: set Y output to Y_OFFSET and reset integral part *)
+END_VAR
+VAR_OUTPUT
+	Y:REAL;				(* manipulated variable, set value*)
+	LIMITS_ACTIVE:BOOL:=FALSE;	(* true set value would exceed limits Y_MIN, Y_MAX *)
+	OVERFLOW:BOOL:=FALSE;		(* overflow in integral part *)
+END_VAR
+VAR
+	CLOCK:TON;
+	I: INTEGRAL;
+	D: DERIVATIVE;
+	TMDIFF: DWORD;
+	ERROR: REAL;
+	INIT: BOOL:=TRUE;
+	Y_ADDOFFSET: REAL;
+	KPcopy:REAL;
+	TNcopy:REAL;
+	TVcopy:REAL;
+	rIntermediateVar:REAL;
+END_VAR
+
+
+(* @END_DECLARATION := '0' *)
+IF TN>0 AND KP<> 0 AND (NOT OVERFLOW OR RESET OR MANUAL) THEN
+	ERROR := SET_POINT-ACTUAL;								(* Regeldifferenz *)
+
+	IF RESET OR MANUAL OR INIT OR (KP<>KPcopy OR TN<>TNcopy OR TV<>TVcopy) THEN							(* Reset oder Handbetrieb *)
+		I(RESET:=TRUE);
+		D(RESET:=TRUE);
+		OVERFLOW:=FALSE;
+		LIMITS_ACTIVE:=FALSE;
+		IF RESET OR INIT THEN
+			Y := Y_OFFSET;
+			INIT:=FALSE;
+			Y_ADDOFFSET := 0;
+		ELSIF MANUAL THEN
+			Y := Y_MANUAL;
+			rIntermediateVar:=I.OUT/TN+D.OUT*TV;
+			Y_ADDOFFSET := Y_MANUAL-(Y_OFFSET+KP*(ERROR)+rIntermediateVar);
+			(*Y_ADDOFFSET := Y_MANUAL-(Y_OFFSET+KP*(ERROR)+(I.OUT/TN+D.OUT*TV));*)
+		ELSE
+			Y_ADDOFFSET := Y - Y_OFFSET - KP*ERROR;
+		END_IF
+		TMDIFF:=0;
+		CLOCK(IN:=FALSE);									(* Timer neu starten *)
+		CLOCK(PT:=t#1h, IN:=TRUE);
+
+		TNcopy := TN;
+		TVcopy := TV;
+		KPcopy := KP;
+	ELSE
+		CLOCK;												(* Timer abfragen *)
+		TMDIFF:=TIME_TO_DWORD(CLOCK.ET);					(* Zeitdifferenz seit letztem Aufruf *)
+	END_IF;
+
+	IF TMDIFF>0 THEN
+		CLOCK(IN:=FALSE);									(* Timer neu starten *)
+		CLOCK(PT:=t#1h, IN:=TRUE);
+
+		D(IN:=ERROR, TM:=TMDIFF, RESET:=FALSE);				(* Differential abschätzen *)
+		I(IN:=ERROR, TM:=TMDIFF, RESET:=FALSE);				(* Integral abschätzen *)
+
+		OVERFLOW := I.OVERFLOW;
+		IF NOT OVERFLOW THEN
+			Y:=Y_OFFSET+KP*(ERROR)+(I.OUT/TN+D.OUT*TV) + Y_ADDOFFSET;
+			IF Y>1E30 OR Y<-1E30 THEN						(* Overflow steht bevor, darf aber eigentlich nicht passieren *)
+				OVERFLOW:=TRUE;
+			END_IF;
+
+			LIMITS_ACTIVE:=FALSE;
+			IF Y_MAX>Y_MIN AND Y>Y_MAX  THEN				(* Stellwert-Obergrenze überschritten *)
+				LIMITS_ACTIVE:=TRUE;
+				IF KP<>0 THEN
+					I(IN:=(Y_MAX-Y)*TN/KP,TM:=1000,RESET:=FALSE);		(* Integral korrigieren *)
+				END_IF
+				Y:=Y_MAX;
+			END_IF;
+			IF Y_MAX>Y_MIN AND Y<Y_MIN THEN					(* Stellwert-Untergrenze unterschritten *)
+				LIMITS_ACTIVE:=TRUE;
+				IF KP<>0 THEN
+					I(IN:=(Y_MIN-Y)*TN/KP,TM:=1000,RESET:=FALSE);		(* Integral korrigieren *)
+				END_IF
+				Y:=Y_MIN;
+			END_IF;
+		END_IF;
+	ELSE
+		CLOCK(PT:=t#1h,IN:=TRUE);
+	END_IF;
+
+END_IF;
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/_ExtraFB\/mathematical functions' *)
+(* @OBJECTFLAGS := '8, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+(* function block to approximate the derivative of a value *)
+(* to calculate this, always four values are used in order to be as exact as possible *)
+FUNCTION_BLOCK DERIVATIVE
+VAR_INPUT
+	IN:REAL;						(* input variable *)
+	TM:DWORD;					(* time since last call in msec *)
+	RESET:BOOL;					(* reset: set OUT to zero *)
+END_VAR
+VAR_OUTPUT
+	OUT:REAL;					(* derivative *)
+END_VAR
+VAR
+	X3,X2,X1:REAL;
+	T2,T1:DWORD;
+	INIT:BOOL:=TRUE;
+END_VAR
+(* @END_DECLARATION := '0' *)
+IF INIT OR RESET THEN
+	X1:=IN;
+	X2:=IN;
+	X3:=IN;
+	OUT:=0;
+	INIT:=FALSE;
+ELSE
+	IF TM>0 THEN
+		OUT:=(3*(IN-X3)+X1-X2)/((3*T2+4*T1+3*TM))*1000;
+		X3:=X2;
+		X2:=X1;
+		X1:=IN;
+		T2:=T1;
+		T1:=TM;
+	END_IF;
+END_IF;
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/_ExtraFB\/mathematical functions' *)
+(* @OBJECTFLAGS := '8, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+(* function block to approximate the integral of IN over the time *)
+FUNCTION_BLOCK INTEGRAL
+VAR_INPUT
+	IN:REAL;						(* input variable *)
+	TM:DWORD;					(* time since last call in msec *)
+	RESET:BOOL;					(* reset: OUT is set to zero and OVERFLOW to false *)
+END_VAR
+VAR_OUTPUT
+	OUT:REAL;					(* value of the integral *)
+	OVERFLOW:BOOL:=FALSE;	(* overflow *)
+END_VAR
+VAR
+END_VAR
+(* @END_DECLARATION := '0' *)
+IF RESET THEN
+	OUT:=0;
+	OVERFLOW:=FALSE;
+ELSIF NOT OVERFLOW  THEN
+	IF 1E38 - IN*TM < OUT OR -1E38 - IN*TM > OUT THEN
+		OVERFLOW:=TRUE;
+	ELSE
+		OUT:=OUT+IN*TM/1000;
+	END_IF;
+END_IF;
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/_ExtraFB\/mathematical functions' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+(* linear transformation *)
+FUNCTION_BLOCK LIN_TRAFO
+VAR_INPUT
+	IN: REAL;				(* input value*)
+	IN_MIN:REAL;			(* minimum input value *)
+	IN_MAX:REAL;			(* maximum input value *)
+	OUT_MIN:REAL;		(* corresponding minimum output value *)
+	OUT_MAX:REAL;		(* corresponding maximum output value *)
+END_VAR
+VAR_OUTPUT
+	OUT: REAL;			(* output value *)
+	ERROR: BOOL;		(* error: IN_MIN = IN_MAX or IN out of interval *)
+END_VAR
+
+VAR
+	Diff: REAL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+Diff := IN_MAX-IN_MIN;
+ERROR := (Diff=0) OR (IN<IN_MIN) OR (IN>IN_MAX);
+
+IF NOT ERROR THEN
+	OUT := (IN-IN_MIN)/Diff * (OUT_MAX-OUT_MIN) + OUT_MIN;
+END_IF
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Heater' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbHeater
+VAR_INPUT
+	xManualMode:			BOOL;
+	xNoFeedback:			BOOL;
+	wTautoSet:			REAL;
+	wPowerManualSet:	REAL;
+	wKp:					REAL;
+	wKi:					REAL;
+	wKd:					REAL;
+	wMaxPower:			WORD;
+	wMinPower:			WORD;
+	wTget:					REAL;
+	wFlawGet:				REAL;
+	xInterlock:				BOOL;
+	xPumpWorking:		BOOL;
+END_VAR
+VAR_IN_OUT
+	wTmanualSet:			REAL;
+END_VAR
+VAR_OUTPUT
+	wAO_Power:			REAL;
+	wError:					WORD;
+END_VAR
+VAR
+	fbAutoPID:				fbPID;
+	tnNoFlaw:				TON;
+END_VAR
+(* @END_DECLARATION := '0' *)
+IF xManualMode THEN
+	IF (wTmanualSet > 0 OR xNoFeedback) AND wError = 0 THEN
+		fbAutoPID(
+			ACTUAL:= wTget,
+			SET_POINT:= wTmanualSet,
+			KP:= wKp,
+			TN:= wKi,
+			TV:= wKd,
+			Y_MANUAL:= wPowerManualSet,
+			Y_OFFSET:= ,
+			Y_MIN:= wMinPower,
+			Y_MAX:= wMaxPower,
+			MANUAL:= xNoFeedback,
+			RESET:= ,
+			Y=> ,
+			LIMITS_ACTIVE=> ,
+			OVERFLOW=> );
+			wAO_Power:= fbAutoPID.Y;
+	ELSE
+		wAO_Power:=0;
+	END_IF
+ELSE
+	wTmanualSet:=wTautoSet;
+	IF wTautoSet > 0 AND wError = 0 THEN
+		fbAutoPID(
+			ACTUAL:= wTget,
+			SET_POINT:= wTautoSet,
+			KP:= wKp,
+			TN:= wKi,
+			TV:= wKd,
+			Y_MANUAL:= wPowerManualSet,
+			Y_OFFSET:= ,
+			Y_MIN:= wMinPower,
+			Y_MAX:= wMaxPower,
+			MANUAL:=xNoFeedback ,
+			RESET:= ,
+			Y=> ,
+			LIMITS_ACTIVE=> ,
+			OVERFLOW=> );
+			wAO_Power:= fbAutoPID.Y;
+	ELSE
+		wAO_Power:=0;
+	END_IF
+END_IF
+
+
+
+tnNoFlaw(IN:=  (NOT xPumpWorking) AND (wTautoSet>0), PT:=T#1s, Q=>wError.0);
+(*
+IF tnNoFlaw.Q THEN
+	wError.0:=TRUE;
+END_IF
+*)
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Heater' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prHeater
+VAR
+	Heater: fbHeater;
+	Cooler: fbHeater;
+END_VAR
+(* @END_DECLARATION := '0' *)
+Heater(
+	xManualMode:= Heater_xManualMode_1,
+	xNoFeedback:= Heater_xNoFeedback_1,
+	wTautoSet:= Heater_AutoSetT_1,
+	wPowerManualSet:= Heater_ManualSetP,
+	wKp:= Heater_Kp,
+	wKi:= Heater_Ki,
+	wKd:= Heater_Kd,
+	wMaxPower:= Heater_wMaxPower,
+	wMinPower:= Heater_wMinPower,
+	wTget:= rTempAfterHeat,
+	wFlawGet:= 90,
+	xInterlock:= NOT DI_Pump_InvNorm_UZ1,
+	xPumpWorking:= DI_FeedBackSwitchLine_UZ1,
+	wTmanualSet:= Heater_ManualSetT_1,
+	wAO_Power=> Heater_PowerSet_1,
+	wError=> Heater_Error_1);
+
+IF Heater_PowerSet_1 > 3 THEN
+	OnAuto_V107:=TRUE;
+END_IF
+IF Heater_PowerSet_1 < 2 THEN
+	OnAuto_V107:=FALSE;
+END_IF
+
+Cooler(
+	xManualMode:= Cooler_xManualMode_2,
+	xNoFeedback:= Cooler_xNoFeedback_1,
+	wTautoSet:= 200 - Cooler_AutoSetT_1,
+	wPowerManualSet:= Cooler_ManualSetP,
+	wKp:= Cooler_Kp,
+	wKi:= Cooler_Ki,
+	wKd:= Cooler_Kd,
+	wMaxPower:= Cooler_wMaxPower,
+	wMinPower:= Cooler_wMinPower,
+	wTget:= 200 -  rTempOut,
+	wFlawGet:= 90,
+	xInterlock:= NOT DI_Pump_InvNorm_UZ1,
+	xPumpWorking:= DI_FeedBackSwitchLine_UZ1,
+	wTmanualSet:= Cooler_PowerSet_1,
+	wAO_Power=> Cooler_PowerSet_1,
+	wError=> Cooler_Error_1);
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbPumpPID
+VAR_INPUT
+	xManualMode:			BOOL;
+	xOnAuto:				BOOL;
+	xInRotationFlg:		BOOL;
+
+	xNoFeedback:			BOOL;
+	wFlawAutoSet:		REAL;
+	wFlawManualSet:		REAL;
+	wVelocitySet:			REAL;
+	wFlawGet:				REAL;
+	wKp:					REAL;
+	wKi:					REAL;
+	wKd:					REAL;
+	wMaxSpeed:			WORD;
+	wMinSpeed:			WORD;
+
+	xInvertorNorm:			BOOL;
+
+	(*xInterlock:				BOOL;*)
+END_VAR
+VAR_IN_OUT
+
+	xOnManual:			BOOL;
+	xResetErr:				BOOL;
+
+END_VAR
+VAR_OUTPUT
+	xDO_On:				BOOL;
+	wAO_SpeedSet:		REAL;
+	wError:					WORD;
+	wState:				WORD;
+END_VAR
+VAR
+	fbAutoPID:				fbPID;
+	(*tnInterlockOn:			TON;*)
+	tnNoFlaw:				TON;
+	rSetPrm:				REAL;
+	xSetManual:			BOOL;
+	rtManual:				R_TRIG;
+	rtAuto:					R_TRIG;
+	ftManual:				F_TRIG;
+	ftAuto:					F_TRIG;
+	RESET: BOOL;
+	LIN_TRAFO:LIN_TRAFO;
+END_VAR
+(* @END_DECLARATION := '0' *)
+rtManual(CLK:=xOnManual);
+rtAuto(CLK:= xOnAuto);
+ftManual(CLK:=xOnManual);
+ftAuto(CLK:= xOnAuto);
+
+IF ftManual.Q OR ftAuto.Q THEN
+	RESET:=TRUE;;
+END_IF
+IF rtManual.Q OR rtAuto.Q THEN
+	RESET:=FALSE;
+END_IF
+
+IF xManualMode THEN
+
+		fbAutoPID(
+		ACTUAL:= wFlawGet,
+		SET_POINT:= (*wFlawManualSet*)rSetPrm,
+		KP:= wKp,
+		TN:= wKi,
+		TV:= wKd,
+		Y_MANUAL:=  wVelocitySet,
+		Y_OFFSET:= ,
+		Y_MIN:= wMinSpeed,
+		Y_MAX:= wMaxSpeed,
+		MANUAL:= xNoFeedback,
+		RESET:= RESET,
+		Y=> ,
+		LIMITS_ACTIVE=> ,
+		OVERFLOW=> );
+		(*RESET:=FALSE;*)
+		wAO_SpeedSet:= fbAutoPID.Y;
+
+	IF xOnManual AND wError = 0 THEN
+		xDO_On:=TRUE;
+		rSetPrm:=wFlawManualSet;
+	ELSE
+		wAO_SpeedSet:=0;
+		rSetPrm:=0;
+		xDO_On:= FALSE;
+	END_IF
+
+ELSE
+
+	(*IF wFlawAutoSet > 0 THEN*)
+		fbAutoPID(
+		ACTUAL:= wFlawGet,
+		SET_POINT:= (*wFlawAutoSet*)rSetPrm,
+		KP:= wKp,
+		TN:= wKi,
+		TV:= wKd,
+		Y_MANUAL:= ,
+		Y_OFFSET:= ,
+		Y_MIN:= wMinSpeed,
+		Y_MAX:= wMaxSpeed,
+		MANUAL:= FALSE,
+		RESET:=RESET ,
+		Y=> ,
+		LIMITS_ACTIVE=> ,
+		OVERFLOW=> );
+		(*RESET:=FALSE;*)
+		wAO_SpeedSet:= fbAutoPID.Y;
+	(*ELSE
+		wAO_SpeedSet:=0;
+	END_IF*)
+	IF xOnAuto AND wError = 0 THEN
+		xDO_On:=TRUE;
+		rSetPrm:=wFlawAutoSet;
+	ELSE
+		wAO_SpeedSet:=0;
+		rSetPrm:=0;
+		xDO_On:= FALSE;
+	END_IF
+	xOnManual:=xOnAuto;
+
+END_IF
+
+
+
+
+tnNoFlaw(IN:=xDO_On AND (wFlawGet = 0), PT:=T#300s, Q=>wError.0);
+
+
+IF (xDO_On AND (NOT xInRotationFlg)) OR (xInRotationFlg AND (NOT xDO_On)) THEN
+	wState:=1;
+ELSIF xDO_On AND xInRotationFlg THEN
+	wState:=2;
+ELSIF NOT (xDO_On OR xInRotationFlg) THEN
+	wState:=0;
+END_IF
+
+IF NOT xInvertorNorm THEN
+	wError.1:=TRUE;
+ELSE
+	wError.1:=FALSE;
+END_IF
+IF xResetErr THEN
+
+	wError:=0;
+END_IF
+(*
+IF tnNoFlaw.Q THEN
+	wError.0:=TRUE;
+END_IF
+*)
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Pump' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prPump
+VAR
+	PumpPID: fbPumpPID;
+	P1:		fbValve;
+END_VAR
+(* @END_DECLARATION := '0' *)
+PumpPID(
+	xManualMode:= Pump_ManualMode_UZ1,
+	xOnAuto:= Pump_OnAuto_UZ1,
+	xInRotationFlg:= DI_FeedBackSwitchLine_UZ1,
+	xNoFeedback:= Pump_NoFeedback_UZ1,
+	wFlawAutoSet:= Pump_FlawAutoSet_2,
+	wFlawManualSet:= Pump_FlawManualSet_1,
+	wVelocitySet:= Pump_VelocitySet_1,
+	wFlawGet:= Pump_FlawGet_1,
+	wKp:= Pump_Kp,
+	wKi:= Pump_Ki,
+	wKd:= Pump_Kd,
+	wMaxSpeed:= Pump_MaxSpeed,
+	wMinSpeed:= Pump_MinSpeed,
+	xInvertorNorm:= DI_Pump_InvNorm_UZ1,
+	xOnManual:= Pump_OnManual_UZ1,
+	xResetErr:= xResetAlmAll,
+	xDO_On=> DO_PumpOn_UZ1,
+	wAO_SpeedSet=> PumpSpeedSet_UZ1,
+	wError=>Pump_Error_UZ1 ,
+	wState=> Pump_State_UZ1);
+
+P1(
+	xManualMode:= Pump_ManualMode_P1,
+	xOnAuto:= Pump_OnAuto_P1,
+	wOffDelay:= 0,
+	xSensor:= DO_PumpOn_P1,
+	xInterlock:= , 
+	xOnManual:= Pump_OnManual_P1,
+	xResetError:= xResetAlmAll,
+	xDO_On=> DO_PumpOn_P1,
+	xState=> Pump_State_P1,
+	wError=> Pump_Error_P1);
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Valve' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbValve
+VAR_INPUT
+	xManualMode:			BOOL;
+	xOnAuto:				BOOL;
+	wOffDelay:				WORD:=3;
+	xSensor:				BOOL;
+	xInterlock:				BOOL;
+
+END_VAR
+VAR_IN_OUT
+
+	xOnManual:			BOOL;
+	xResetError:			BOOL;
+
+END_VAR
+VAR_OUTPUT
+	xDO_On:				BOOL;
+	xState:					BOOL;
+	wError:					WORD;
+END_VAR
+VAR
+	tfOffDelay:				TOF;
+	xDO_OnOld:			BOOL;
+	tnErrorNotOpen:		TON;
+	tnErrorNotClosed:		TON;
+	rtSwitchToManual:		R_TRIG;
+
+END_VAR
+(* @END_DECLARATION := '0' *)
+rtSwitchToManual(CLK:=xManualMode);
+IF rtSwitchToManual.Q THEN
+	xOnManual:=xOnAuto;
+END_IF
+
+IF xManualMode THEN
+	tfOffDelay(IN:=xOnManual, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+ELSE
+	xOnManual:=FALSE;
+	tfOffDelay(IN:=xOnAuto, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+END_IF
+xState:=xSensor;
+
+IF xInterlock THEN
+	xDO_On:=FALSE;
+	IF xOnAuto OR xOnManual THEN
+		wError.2:=TRUE;
+		xOnManual:=FALSE;
+	END_IF
+ELSE
+	wError.2:=FALSE;
+END_IF
+
+tnErrorNotOpen(IN:= xDO_On AND (NOT xSensor), PT:=t#15S);
+tnErrorNotClosed(IN:= (NOT xDO_On) AND xSensor, PT:=t#15S);
+
+IF tnErrorNotOpen.Q THEN
+	wError.0:=TRUE;
+END_IF
+IF tnErrorNotClosed.Q THEN
+	wError.1:=TRUE;
+END_IF
+
+IF xResetAlmAll THEN
+	tnErrorNotOpen(IN:=FALSE);
+	tnErrorNotClosed(IN:=FALSE);
+	wError:=0;
+END_IF
+
+
+
+(*
+IF xDO_OnOld <> xDO_On THEN
+	tnDelayState(IN:=TRUE, PT:=T#3S);
+	IF tnDelayState.Q THEN
+		xState:= 		xDO_On;
+		xDO_OnOld:=	xDO_On;
+		tnDelayState(IN:=FALSE);
+	END_IF
+END_IF
+*)
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Valve' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbWaterSupplyValveInvert
+VAR_INPUT
+	xManualMode:			BOOL;
+	wOffDelay:				WORD:=3;
+
+
+	rWaterLevelNotOK:	BOOL;
+	xUpperLevel:			BOOL;
+	xSensor:				BOOL;
+END_VAR
+VAR_IN_OUT
+	xSupply:		BOOL;
+	xOnManual:			BOOL;
+
+END_VAR
+VAR_OUTPUT
+	xDO_On:				BOOL;
+	xState:					BOOL;
+END_VAR
+VAR
+	tfOffDelay:				TOF;
+	xDO_OnOld:			BOOL;
+	tnDelayState:			TON;
+	rtLevelDown:			R_TRIG;
+	xOnAuto:				BOOL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+IF xManualMode THEN
+	tfOffDelay(IN:=xOnManual, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+ELSIF xSupply THEN
+	(*rtLevelDown(CLK:= rWaterLevel < rWaterLevelNotOK);*)
+	IF NOT rWaterLevelNotOK THEN
+		xOnAuto:=TRUE;
+	END_IF
+	IF xUpperLevel THEN
+		xOnAuto:=FALSE;
+	END_IF
+
+	tfOffDelay(IN:=xOnAuto, PT:= WORD_TO_TIME(wOffDelay * 1000), Q=>xDO_On);
+END_IF
+
+xState:=xSensor;
+
+IF NOT xSupply THEN
+	xDO_On:=FALSE;
+END_IF
+(*
+xSupply:=FALSE;
+*)
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device\/Valve' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prValve
+VAR
+
+	(*Valve_V101	:	fbValve;*)
+	Valve_V102	:	fbValve;
+	Valve_V103	:	fbValve;
+	Valve_V104	:	fbValve;
+	Valve_V105	:	fbValve;
+	(*Valve_V106	:	fbValve;*)
+	Valve_V107	:	fbValve;
+
+	Valve_V1:	fbWaterSupplyValveInvert;
+	Valve_V6:	fbWaterSupplyValveInvert;
+
+
+
+	xOnAutoWorking: BOOL;
+	xResetErrorValves: BOOL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+xResetErrorValves:=xResetAlmAll;
+xResetErrorValves:=xResetAlmAll;
+(*
+Valve_V101
+(xManualMode:= ManualMode_V101,
+xSensor:=(*DI_V101*)DO_V101,
+xOnAuto:= OnAuto_V101,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V101,
+xDO_On=> DO_V101,
+wError=> wAlm_V101,
+xState=> xState_V101);
+*)
+Valve_V1(
+	xManualMode:= ManualMode_V101,
+	wOffDelay:= ,
+	rWaterLevelNotOK:= NOT  DI_LM,
+	xUpperLevel:= NOT DI_LH,
+	xSensor:= DO_V101,
+	xSupply:= xSupply_V1,
+	xOnManual:= OnManual_V101,
+	xDO_On=> DO_V101,
+	xState=> xState_V101);
+
+Valve_V102
+(xManualMode:= ManualMode_V102,
+xSensor:=(*DI_V102*)DO_V102,
+xOnAuto:= OnAuto_V102,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V102,
+xDO_On=> DO_V102,
+wError=> wAlm_V102,
+xState=> xState_V102);
+
+Valve_V103
+(xManualMode:= ManualMode_V103,
+xSensor:=(*DI_V103*)DO_V103,
+xOnAuto:= OnAuto_V103,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V103,
+xDO_On=> DO_V103,
+wError=> wAlm_V103,
+xState=> xState_V103);
+
+Valve_V104
+(xManualMode:= ManualMode_V104,
+xSensor:=(*DI_V104*)DO_V104,
+xOnAuto:= OnAuto_V104,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V104,
+xDO_On=> DO_V104,
+wError=> wAlm_V104,
+xState=> xState_V104);
+
+Valve_V105
+(xManualMode:= ManualMode_V105,
+xSensor:=(*DI_V105*)DO_V105,
+xOnAuto:= OnAuto_V105,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V105,
+xDO_On=> DO_V105,
+wError=> wAlm_V105,
+xState=> xState_V105);
+
+(*
+Valve_V106
+(xManualMode:= ManualMode_V106,
+xSensor:=(*DI_V106*)DO_V106,
+(*
+xInterlock:= DI_AlkaliUpperLevel,
+*)
+xOnAuto:= OnAuto_V106,
+xResetError:= xResetErrorValves,
+ xOnManual:= OnManual_V106,
+xDO_On=> DO_V106,
+wError=> wAlm_V106,
+xState=> xState_V106);
+*)
+Valve_V6(
+	xManualMode:= ManualMode_V106,
+	wOffDelay:= , 
+	rWaterLevelNotOK:= NOT  DI_LM,
+	xUpperLevel:= NOT DI_LH,
+	xSensor:= DO_V106,
+	xSupply:= xSupply_V6,
+	xOnManual:= OnManual_V106,
+	xDO_On=>DO_V106 ,
+	xState=> xState_V106);
+
+Valve_V107
+(xManualMode:= ManualMode_V107,
+xSensor:=(*DI_V107*)DO_V107,
+(*
+xInterlock:= DI_AccidUpperLevel OR xState_V102,
+*)
+xOnAuto:= OnAuto_V107,
+xResetError:= xResetErrorValves,
+xOnManual:= OnManual_V107,
+xDO_On=> DO_V107,
+wError=> wAlm_V107,
+xState=> xState_V107);
+
+
+
+
+
+(*
+xOnAutoWorking:= wWashingStateLine1 > 0 OR wWashingStateLine2 > 0
+					OR wWashingStateLine3 > 0 OR wWashingStateLine4 > 0
+					OR wDissolvingStateLine1 > 0 OR wDissolvingStateLine2 > 0
+					OR wDissolvingStateLine3 > 0 OR wDissolvingStateLine4 > 0
+					OR SelfWashState > 0;
+
+*)
+
+
+
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Device' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prDevice
+VAR
+END_VAR
+(* @END_DECLARATION := '0' *)
+prHeater();
+prPump();
+prValve();
+
+
+IF xAllAuto THEN
+
+	xAllAuto:=FALSE;
+	Heater_xManualMode_1:=FALSE;
+	Cooler_xManualMode_2	:=FALSE;
+	ManualMode_V101	:=	FALSE;
+	ManualMode_V102	:=	FALSE;
+	ManualMode_V103	:=	FALSE;
+	ManualMode_V104	:=	FALSE;
+	ManualMode_V105	:=	FALSE;
+	ManualMode_V106	:=	FALSE;
+	ManualMode_V107	:=	FALSE;
+
+	Pump_ManualMode_UZ1	:=	FALSE;
+	Pump_ManualMode_P1	:=	FALSE;
+
+END_IF
+(*xAllisAuto*)
+xAllisAuto:= (Heater_xManualMode_1 OR Cooler_xManualMode_2 OR ManualMode_V101 OR ManualMode_V102
+			OR ManualMode_V103 OR ManualMode_V104 OR ManualMode_V105 OR ManualMode_V106 OR ManualMode_V107
+			OR Pump_ManualMode_UZ1 OR Pump_ManualMode_UZ1);
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/InOut' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM InToVars
+VAR
+END_VAR
+(* @END_DECLARATION := '0' *)
+
+DI_FeedBackSwitchLine_UZ1	:=	_DI_FeedBackSwitchLine_UZ1	;
+DI_Pump_InvNorm_UZ1			:=	_DI_Pump_InvNorm_UZ1	;
+DI_FeedBackSwitchLine_P1		:=	_DI_FeedBackSwitchLine_P1	;
+DI_Pump_InvNorm_P1			:=	_DI_Pump_InvNorm_P1	;
+DI_LL								:=	NOT _DI_LL	;
+DI_LM								:= 	NOT _DI_LM	;
+DI_LH								:=	NOT _DI_LH	;
+
+AI_OutPressure_PT1				:=	_AI_OutPressure_PT1	;
+AI_TT1								:=	_AI_TT1	;
+AI_TT2								:=	_AI_TT2	;
+AI_TT3								:=	_AI_TT3	;
+AI_TT4								:=	_AI_TT4	;
+AI_PowerGet_UZ1				:=	_AI_PowerGet_UZ1	;
+
+
+
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/InOut' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prInputConvertion
+VAR
+	FlawMessure_Trafo_1: LIN_TRAFO;
+	Pressure: LIN_TRAFO;
+END_VAR
+(* @END_DECLARATION := '0' *)
+FlawMessure_Trafo_1(
+	IN:= AI_PowerGet_UZ1,
+	IN_MIN:= 0,
+	IN_MAX:= 29000,
+	OUT_MIN:= 0,
+	OUT_MAX:=  22);
+Pump_FlawGet_1:= FlawMessure_Trafo_1.OUT;
+IF AI_PowerGet_UZ1 < 9000 THEN
+	Pump_FlawGet_1:=0;
+END_IF
+
+Pressure(
+	IN:= AI_OutPressure_PT1,
+	IN_MIN:= 0,
+	IN_MAX:= 32760,
+	OUT_MIN:= 0,
+	OUT_MAX:=  2000);
+OutPressure_PT1:= Pressure.OUT;
+
+rTempBeforeHeat:= 	WORD_TO_REAL(AI_TT1)/10;
+rTempAfterHeat:= 		WORD_TO_REAL(AI_TT2)/10;
+rTempAfterSpiral:= 	WORD_TO_REAL(AI_TT3)/10;
+rTempOut:= 			WORD_TO_REAL(AI_TT4)/10;
+
+
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/InOut' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prOutputConversion
+VAR
+	PumpOut_1: LIN_TRAFO;
+	HeaterOut_1: LIN_TRAFO;
+	CoolerOut_1: LIN_TRAFO;
+END_VAR
+(* @END_DECLARATION := '0' *)
+PumpOut_1(
+	IN:= PumpSpeedSet_UZ1,
+	IN_MIN:= 0,
+	IN_MAX:= 50,
+	OUT_MIN:= 0,
+	OUT_MAX:= 32762,
+	ERROR=> );
+	AO_PumpSpeedSet_1:= REAL_TO_WORD(PumpOut_1.OUT);
+
+HeaterOut_1(
+	IN:= Heater_PowerSet_1,
+	IN_MIN:= 0,
+	IN_MAX:= 100,
+	OUT_MIN:= 0,
+	OUT_MAX:= 32762,
+	ERROR=> );
+	AO_HeaterPowerSet_VR1:= REAL_TO_WORD(HeaterOut_1.OUT);
+
+CoolerOut_1(
+	IN:= Heater_PowerSet_1,
+	IN_MIN:= 0,
+	IN_MAX:= 100,
+	OUT_MIN:= 0,
+	OUT_MAX:= 32762,
+	ERROR=> );
+	AO_CoolerPowerSet_VR2:= REAL_TO_WORD(CoolerOut_1.OUT);
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/InOut' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prVarsToOut
+VAR
+END_VAR
+(* @END_DECLARATION := '0' *)
+
+_DO_PumpOn_UZ1		:=	DO_PumpOn_UZ1	;
+_DO_PumpOn_P1		:=	DO_PumpOn_P1	;
+_DO_Green				:=	DO_Green	;
+_DO_Yellow				:=	DO_Yellow	;
+_DO_Red					:=	DO_Red	;
+_DO_Sound				:=	DO_Sound	;
+_DO_V101				:=	DO_V101	;
+_DO_V102				:=	DO_V102	;
+_DO_V103				:=	DO_V103	;
+_DO_V104				:=	DO_V104	;
+_DO_V105				:=	DO_V105	;
+_DO_V106				:=	DO_V106	;
+_DO_V107				:=	DO_V107	;
+
+_AO_PumpSpeedSet_1		:=	AO_PumpSpeedSet_1	;
+_AO_HeaterPowerSet_VR1	:=	AO_HeaterPowerSet_VR1	;
+_AO_CoolerPowerSet_VR2 	:=	AO_CoolerPowerSet_VR2 	;
+
+
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Process\/Production' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbProductionPasterisator
+VAR_INPUT
+
+	xReady:				BOOL;
+
+	rOutPressure:	 		REAL;
+	rTempBeforeHeat:	REAL;
+	rTempAfterHeat:		REAL;
+	rTempAfterSpiral:		REAL;
+	rTempOut:				REAL;
+
+	rThreasholdPressure:	REAL;
+	rFlawSet:				REAL;
+	rHeatSet:				REAL;
+	rCoolerSet:			REAL;
+	xUpperLevel:			BOOL;
+	xBottomLevel:			BOOL;
+	wWatingFillingPipelineTime:	WORD:=60;
+	wWaitTempSetTime:	WORD;
+	rCheckTempAfterSpiral:	REAL;
+	rCheckTcooler:		REAL;
+	xUseAllSpirals:		BOOL;
+
+	UZ_Working:			BOOL;
+	wPushingTime:		WORD;
+
+
+END_VAR
+VAR_IN_OUT
+	xStart:					BOOL;
+	xStopAll:				BOOL;
+	xContinueWithMilk:	BOOL;
+	xStartCheckingValve:	BOOL;
+	xPause:				BOOL;
+	xOnCycle:				BOOL;
+
+	xSupplyWaterValve:			BOOL;
+	xSupplyMilkValve:				BOOL;
+	xUZ_BypassValve:			BOOL;
+
+	xOutBypass:				BOOL;
+	xOutValve:					BOOL;
+	xSpiralChooseValve:		BOOL;
+
+	xP1:						BOOL;
+	xUZ1:						BOOL;
+
+	rUZ_FlawSet:				REAL;
+
+	rHeaterSetOut:			REAL;
+	rCoolerSetOut:			REAL;
+
+	Heater_xNoFeedback_1:	BOOL;
+	Cooler_xNoFeedback_1:	BOOL;
+	Heater_PowerSet_1:		REAL;
+	Cooler_PowerSet_1:		REAL;
+	xResetErr:					BOOL;
+
+END_VAR
+VAR_OUTPUT
+	wState:					PasterisatorProductionStates;
+	wError:						WORD;
+END_VAR
+VAR
+	rtStart:		R_TRIG;
+	rtStopAll:		R_TRIG;
+	ftStart:		F_TRIG;
+	rtPause:	R_TRIG;
+	ftContinueWithMilk:		F_TRIG;
+	tnWaitFillingPipeline:		TON;
+	tnWaitTempSet:			TON;
+	tnEmptyTank:				TON;
+	wStatePouse: 				PasterisatorProductionStates;
+	tnPressureAlm:			TON;
+	tnWaitPushing:			TON;
+	tnTempOK:				TON;
+	tnWaitCool:				TON;
+	tnCoolOK:					TON;
+END_VAR
+(* @END_DECLARATION := '0' *)
+ftContinueWithMilk(CLK:=xContinueWithMilk);
+IF ftContinueWithMilk.Q THEN
+	xStart:=FALSE;
+END_IF
+rtStart(CLK:=xStart);
+rtStopAll(CLK:=xStopAll);
+ftStart(CLK:=xStart);
+rtPause(CLK:=xPause);
+
+IF rtStopAll.Q THEN
+	actStopAll();
+END_IF
+
+IF rtPause.Q AND wState> 0 THEN
+	actRT_Pause();
+END_IF
+
+IF ftStart.Q THEN
+	actFT_Start();
+END_IF
+
+CASE wState OF
+
+			Production_Stop:
+
+
+					IF rtStart.Q AND xReady THEN
+						xUZ_BypassValve:=	FALSE;
+						wState:= PreparationFillTank;
+					END_IF
+					xPause:=FALSE;
+
+
+			ProcessPause:
+
+					IF NOT xPause THEN
+						wState:= wStatePouse;
+					END_IF
+
+
+			PreparationFillTank:
+
+					actPreparationFillTank();
+
+			PreparationFillingPipeline:
+
+					actPreparationFillingPipeline();
+
+			PreparationSetTemperatures:
+
+					actPreparationSetTemperatures();
+
+			EmptyTank:
+
+					actEmptyTank();
+
+			FillTankWithMilk:
+
+					actFillTankWithMilk();
+
+
+			PushingWaterByMilk:
+
+					actPushingWaterByMilk();
+
+			StartWithMilk:
+
+					actStartWithMilk();
+
+			ProductionOnCycle:
+
+					actProductionOnCycle();
+
+			EmptyTankMilk:
+
+					actEmptyTankMilk();
+
+			PushingMilkByWater:
+
+					actPushingMilkByWater();
+
+			StayOnFinalCycle:
+
+					actStayOnFinalCycle();
+
+
+END_CASE
+
+IF xResetErr THEN
+	wError:=0;
+END_IF
+IF wState > 0 THEN
+	xSpiralChooseValve:=		xUseAllSpirals;
+END_IF
+
+
+
+END_FUNCTION_BLOCK
+ACTION	actEmptyTank:
+
+	xSupplyWaterValve:=			FALSE;
+	xOutValve:=					TRUE;
+
+	xOutBypass:=					FALSE;
+	xP1:=							TRUE;
+	
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Cooler_PowerSet_1:=		0;
+	Heater_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+	
+	tnEmptyTank(IN:= NOT xBottomLevel, PT:=T#5S);
+	IF tnEmptyTank.Q THEN
+		tnEmptyTank(IN:=FALSE);
+		wState:=FillTankWithMilk;
+	END_IF
+END_ACTION
+
+ACTION	actEmptyTankMilk:
+
+	xSupplyMilkValve:=			FALSE;
+	xSupplyWaterValve:=			FALSE;
+	xOutValve:=					TRUE;
+
+	xOutBypass:=					FALSE;
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Cooler_PowerSet_1:=		0;
+	Heater_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+
+	tnEmptyTank(IN:= NOT xBottomLevel, PT:=T#5S);
+	IF tnEmptyTank.Q THEN
+		tnEmptyTank(IN:=FALSE);
+		wState:=PushingMilkByWater;
+	END_IF
+END_ACTION
+
+ACTION	actFillTankWithMilk:
+
+	xSupplyWaterValve:=	FALSE;
+	xSupplyMilkValve:=	TRUE;
+	xOutValve:=			TRUE;
+	xP1:=					FALSE;
+	xUZ1:=					FALSE;
+
+	IF xUpperLevel THEN
+		wState:=PushingWaterByMilk;
+	END_IF
+END_ACTION
+
+ACTION	actFT_Start:
+
+xContinueWithMilk:=			FALSE;
+xPause:=FALSE;
+xOnCycle:=FALSE;
+IF wState = PreparationFillTank OR  wState = PreparationFillingPipeline
+OR wState = PreparationSetTemperatures OR wState = EmptyTank THEN
+
+	wState:=StayOnFinalCycle;
+
+ELSIF wState = FillTankWithMilk OR wState = PushingWaterByMilk
+OR wState = StartWithMilk OR wState = ProductionOnCycle THEN
+
+	wState:=EmptyTankMilk;
+
+END_IF
+END_ACTION
+
+ACTION	actPreparationFillingPipeline:
+
+	xSupplyWaterValve:=	TRUE;
+	xOutValve:=			FALSE;
+
+	xOutBypass:=			FALSE;
+	xP1:=					TRUE;
+	
+	rUZ_FlawSet:=		rFlawSet;
+	xUZ1:=					TRUE;
+	
+	tnWaitFillingPipeline(IN:=UZ_Working, PT:= WORD_TO_TIME(wWatingFillingPipelineTime)*1000);
+	IF tnWaitFillingPipeline.Q THEN
+		tnWaitFillingPipeline(IN:=FALSE);
+		xOutBypass:=					FALSE;
+		wState:= PreparationSetTemperatures;
+	END_IF
+END_ACTION
+
+ACTION	actPreparationFillTank:
+
+	xSupplyWaterValve:=TRUE;
+	xSupplyMilkValve:=FALSE;
+	xOutValve:=FALSE;
+	xP1:=					FALSE;
+	
+	rUZ_FlawSet:=		rFlawSet;
+	xUZ1:=					FALSE;
+	IF xUpperLevel THEN
+		wState:= PreparationFillingPipeline;
+	END_IF
+END_ACTION
+
+ACTION	actPreparationSetTemperatures:
+
+	xSupplyWaterValve:=			TRUE;
+	xOutValve:=					FALSE;
+
+
+	xP1:=							TRUE;
+	
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	FALSE;
+	rCoolerSetOut:=				rCoolerSet;
+	
+	IF NOT xStartCheckingValve THEN
+		Heater_xNoFeedback_1:=FALSE;
+		rHeaterSetOut:=rHeatSet;
+	ELSE
+		Heater_xNoFeedback_1:=TRUE;
+		Heater_PowerSet_1:=0;
+	END_IF
+	
+	tnWaitTempSet(IN:= rTempAfterSpiral < rCheckTempAfterSpiral, PT:= WORD_TO_TIME(wWaitTempSetTime) * 1000);
+	IF tnWaitTempSet.Q THEN
+		tnWaitTempSet(IN:=FALSE);
+		xOutBypass:=	TRUE;
+	END_IF
+
+	tnTempOK(IN:= rTempAfterSpiral > rCheckTempAfterSpiral, PT:= WORD_TO_TIME(wWaitTempSetTime) * 1000);
+	IF tnTempOK.Q THEN
+		xOutBypass:=FALSE;
+		(*xOutValve:=TRUE;*)
+	END_IF
+	
+	IF xContinueWithMilk THEN
+		wState:=EmptyTank;
+	END_IF
+END_ACTION
+
+ACTION	actProductionOnCycle:
+
+	xSupplyWaterValve:=			FALSE;
+	xSupplyMilkValve:=			TRUE;
+	xOutValve:=					FALSE;
+	xOutBypass:=					FALSE;
+
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	FALSE;
+	rCoolerSetOut:=				rCoolerSet;
+	Heater_xNoFeedback_1:=	FALSE;
+	rHeaterSetOut:=				rHeatSet;
+
+	IF NOT xOnCycle THEN
+		wState:=StartWithMilk;
+	END_IF
+END_ACTION
+
+ACTION	actPushingMilkByWater:
+
+	xSupplyMilkValve:=			FALSE;
+	xSupplyWaterValve:=			TRUE;
+	xOutValve:=					TRUE;
+
+	xOutBypass:=					FALSE;
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Cooler_PowerSet_1:=		0;
+	Heater_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+
+	tnWaitPushing(IN:=TRUE, PT:=WORD_TO_TIME(wPushingTime) * 1000);
+	IF tnWaitPushing.Q THEN
+		tnWaitPushing(IN:=FALSE);
+		wState:=StayOnFinalCycle;
+	END_IF
+END_ACTION
+
+ACTION	actPushingWaterByMilk:
+
+	xSupplyWaterValve:=			FALSE;
+	xSupplyMilkValve:=			TRUE;
+	xOutValve:=					TRUE;
+	xOutBypass:=					FALSE;
+
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+
+	tnWaitPushing(IN:=TRUE, PT:=WORD_TO_TIME(wPushingTime) * 1000);
+	IF tnWaitPushing.Q THEN
+		tnWaitPushing(IN:=FALSE);
+		wState:=StartWithMilk;
+	END_IF
+END_ACTION
+
+ACTION	actRT_Pause:
+
+	xP1:=							FALSE;
+	xUZ1:=							FALSE;
+	rUZ_FlawSet:=				0;
+	Heater_xNoFeedback_1:=	TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+	Cooler_PowerSet_1:=		0;
+	wStatePouse:=				wState;
+END_ACTION
+
+ACTION	actStartWithMilk:
+
+	xSupplyWaterValve:=			FALSE;
+	xSupplyMilkValve:=			TRUE;
+	xOutValve:=					TRUE;
+	xOutBypass:=					FALSE;
+
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	FALSE;
+	rCoolerSetOut:=				rCoolerSet;
+	Heater_xNoFeedback_1:=	FALSE;
+	rHeaterSetOut:=				rHeatSet;
+
+	tnWaitTempSet(IN:= rTempAfterSpiral < rCheckTempAfterSpiral, PT:= WORD_TO_TIME(wWaitTempSetTime) * 1000);
+	IF tnWaitTempSet.Q THEN
+		xOutBypass:=TRUE;
+		(*xOutValve:=TRUE;*)
+	END_IF
+
+	tnTempOK(IN:= rTempAfterSpiral > rCheckTempAfterSpiral, PT:= WORD_TO_TIME(wWaitTempSetTime) * 1000);
+	IF tnTempOK.Q THEN
+		xOutBypass:=FALSE;
+		(*xOutValve:=TRUE;*)
+	END_IF
+
+	tnWaitCool(IN:=rTempOut > rCheckTcooler, PT:=T#5S);
+	IF tnWaitCool.Q THEN
+		xOutValve:= FALSE;
+	END_IF
+
+	IF NOT xBottomLevel THEN
+		wError.0:=TRUE;
+	END_IF
+
+	tnPressureAlm(IN:= rOutPressure > rThreasholdPressure, PT:= T#3S);
+	IF tnPressureAlm.Q THEN
+		wError.1:=TRUE;
+	END_IF
+
+	IF wError > 0 THEN
+		xOnCycle:=TRUE;
+	END_IF
+
+	IF xOnCycle THEN
+		wState:=ProductionOnCycle;
+	END_IF
+END_ACTION
+
+ACTION	actStayOnFinalCycle:
+
+	xSupplyWaterValve:=			TRUE;
+	xSupplyMilkValve:=			FALSE;
+	xOutValve:=					FALSE;
+	xOutBypass:=					FALSE;
+
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Heater_xNoFeedback_1:=	TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+	Cooler_PowerSet_1:=		0;
+	wState:=						Production_Stop;
+END_ACTION
+
+ACTION	actStopAll:
+
+	wError:=						0;
+	xOnCycle:=					FALSE;
+	xSupplyWaterValve:=			FALSE;
+	xSupplyMilkValve:=			FALSE;
+	xUZ_BypassValve:=			FALSE;
+	xSpiralChooseValve:=			FALSE;
+	xOutBypass:=					FALSE;
+	xOutValve:=					FALSE;
+	xP1:=							FALSE;
+	xUZ1:=							FALSE;
+	xContinueWithMilk:=			FALSE;
+	rUZ_FlawSet:=				0;
+	Heater_xNoFeedback_1:=	TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+	Cooler_PowerSet_1:=		0;
+	xStart:= 						FALSE;
+	wState:=						Production_Stop;
+END_ACTION
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Process\/Production' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prProduction
+VAR
+	ProductionPasterisator:fbProductionPasterisator;
+	xUZ_BypassValve: BOOL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+ProductionPasterisator(
+	xReady:= TRUE,
+	rOutPressure:= OutPressure_PT1,
+	rTempBeforeHeat:= rTempBeforeHeat,
+	rTempAfterHeat:= rTempAfterHeat,
+	rTempAfterSpiral:= rTempAfterSpiral,
+	rTempOut:= rTempOut,
+	rThreasholdPressure:= rThreasholdPressure,
+	rFlawSet:= rProductionrFlawSet,
+	rHeatSet:= rProductionrHeatSet,
+	rCoolerSet:=rProductionrCoolerSet ,
+	xUpperLevel:= NOT DI_LH,
+	xBottomLevel:= NOT DI_LL,
+	wWatingFillingPipelineTime:= wWatingFillingPipelineTime,
+	wWaitTempSetTime:= 5 ,
+	rCheckTempAfterSpiral:= rProductionCheckTempAfterSpiral,
+	rCheckTcooler:= rProductionrCheckTcooler,
+	xUseAllSpirals:= xUseAllSpirals,
+	UZ_Working:= DI_FeedBackSwitchLine_UZ1,
+	wPushingTime:= wPushingTime,
+	xStart:= xStartProduction,
+	xStopAll:= xStopAll,
+	xContinueWithMilk:= xContinueWithMilk,
+	xStartCheckingValve:= xStartCheckingValve,
+	xPause:= xProductionPause,
+	xOnCycle:= xProductionOnCycle,
+	xSupplyWaterValve:= xSupply_V6,
+	xSupplyMilkValve:= xSupply_V1,
+	xUZ_BypassValve:=OnAuto_V102,
+	xOutBypass:= OnAuto_V103,
+	xOutValve:= OnAuto_V105,
+	xSpiralChooseValve:= OnAuto_V104,
+	xP1:= Pump_OnAuto_P1,
+	xUZ1:= Pump_OnAuto_UZ1,
+	rUZ_FlawSet:= Pump_FlawAutoSet_1,
+	rHeaterSetOut:= Heater_AutoSetT_1,
+	rCoolerSetOut:= Cooler_AutoSetT_1,
+	Heater_xNoFeedback_1:= Heater_xNoFeedback_1,
+	Cooler_xNoFeedback_1:= Cooler_xNoFeedback_1,
+	Heater_PowerSet_1:= Heater_ManualSetP,
+	Cooler_PowerSet_1:= Cooler_ManualSetP,
+	xResetErr:= xResetAlmAll,
+	wState=> wProductionState,
+	wError=> wProductionErr);
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Process\/Sterilisation' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbSterilisation
+VAR_INPUT
+	xReady:				BOOL;
+	rTempBeforeHeat:	REAL;
+	rTempAfterHeat:		REAL;
+	rTempAfterSpiral:		REAL;
+	rTempOut:				REAL;
+	rFlawSet:				REAL;
+	rHeatSet:				REAL;
+	rCoolerSet:			REAL;
+	xUpperLevel:			BOOL;
+	xBottomLevel:			BOOL;
+	wWatingFillingPipelineTime:	WORD:=60;
+	UZ_Working:			BOOL;
+	wSterilisationTime:	WORD;
+	wBypassPeriod:		WORD;
+	wBypassOpnTime:	WORD;
+	xResetErr:				BOOL;
+END_VAR
+VAR_IN_OUT
+
+	xStart:					BOOL;
+	xPause:				BOOL;
+	xStopAll:				BOOL;
+
+	xSupplyWaterValve:			BOOL;
+	xSupplyMilkValve:				BOOL;
+	xUZ_BypassValve:			BOOL;
+
+	xOutBypass:				BOOL;
+	xOutValve:					BOOL;
+	xSpiralChooseValve:		BOOL;
+
+	xP1:						BOOL;
+	xUZ1:						BOOL;
+
+	rUZ_FlawSet:				REAL;
+
+	rHeaterSetOut:			REAL;
+	rCoolerSetOut:			REAL;
+
+	Heater_xNoFeedback_1:	BOOL;
+	Cooler_xNoFeedback_1:	BOOL;
+	Heater_PowerSet_1:		REAL;
+	Cooler_PowerSet_1:		REAL;
+
+END_VAR
+VAR_OUTPUT
+	wState:					SterilisationStates;
+	wError:						WORD;
+	wTimePassed:			WORD;
+	wTimeOperationSet:	WORD;
+END_VAR
+VAR
+	rtStart:		R_TRIG;
+	ftStart:		F_TRIG;
+	rtPause:	R_TRIG;
+	wStatePouse: 				SterilisationStates;
+	tnWaitFillingPipeline:		TON;
+	tnTimeOperation:			TON;
+	tnWaitTemperature:		TON;
+	tnBeforeBypass:			TON;
+	tnWaitBypass:				TON;
+	PauseOperationTime:	TIME;
+	wTimeBeforePause:			WORD;
+	rtStopAll:					R_TRIG;
+	xStartOperation:			BOOL;
+	tnStartOperation:			TON;
+	xBypasTurn:				BOOL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+rtStart(CLK:=xStart);
+ftStart(CLK:=xStart);
+rtPause(CLK:=xPause);
+rtStopAll(CLK:=xStopAll);
+
+IF rtStopAll.Q THEN
+	actRT_StopAll();
+END_IF
+
+IF ftStart.Q AND wState >0 THEN
+	xPause:=	FALSE;
+	wState:= SterilStayOnFinalCycle;
+END_IF
+
+IF rtPause.Q AND wState= SterilisationOperation THEN
+	actRT_Pause();
+END_IF
+
+CASE wState OF
+
+
+			Sterilisation_Stop:
+
+
+						xPause:=FALSE;
+						IF rtStart.Q AND xReady THEN
+							xStartOperation:=FALSE;
+							wState:= SterilisationFillTank;
+						END_IF
+
+
+			SterilisationFillTank:
+
+						actSterilisationFillTank();
+
+			SterilisationFillingPipeline:
+
+						actSterilisationFillingPipeline();
+
+				SterilisationSetTemperatures:
+
+						actSterilisationSetTemperatures();
+
+			SterilisationOperation:
+
+						actSterilisationOperation();
+
+				SterilStayOnFinalCycle:
+
+						actSterilStayOnFinalCycle();
+
+			SterilisationPause:
+
+						IF NOT xPause THEN
+							wState:= SterilisationOperation;
+						END_IF
+
+END_CASE
+END_FUNCTION_BLOCK
+ACTION	actRT_Pause:
+
+	wTimeBeforePause:=wTimePassed;
+	PauseOperationTime:= WORD_TO_TIME(wTimePassed)*1000;
+	tnTimeOperation(IN:=FALSE);
+	wState:= SterilStayOnFinalCycle;
+END_ACTION
+
+ACTION	actRT_StopAll:
+
+	wError:=						0;
+	xPause:=						FALSE;
+	xStart:=						FALSE;
+	xSupplyWaterValve:=			FALSE;
+	xSupplyMilkValve:=			FALSE;
+	xUZ_BypassValve:=			FALSE;
+	xSpiralChooseValve:=			FALSE;
+	xOutBypass:=					FALSE;
+	xOutValve:=					FALSE;
+	xP1:=							FALSE;
+	xUZ1:=							FALSE;
+	rUZ_FlawSet:=				0;
+	Heater_xNoFeedback_1:=	TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+	Cooler_PowerSet_1:=		0;
+	xStartOperation:=				FALSE;
+	wState:=						Sterilisation_Stop;
+END_ACTION
+
+ACTION	actSterilisationFillingPipeline:
+
+	xSupplyWaterValve:=	TRUE;
+	xSupplyMilkValve:=	FALSE;
+	xOutValve:=			FALSE;
+	xSpiralChooseValve:=TRUE;
+	xOutBypass:=			FALSE;
+	xP1:=					TRUE;
+	
+	rUZ_FlawSet:=		rFlawSet;
+	xUZ1:=					TRUE;
+	
+	tnWaitFillingPipeline(IN:=UZ_Working, PT:= WORD_TO_TIME(wWatingFillingPipelineTime)*1000);
+	IF tnWaitFillingPipeline.Q THEN
+		tnWaitFillingPipeline(IN:=FALSE);
+		wState:= SterilisationSetTemperatures;
+	END_IF
+END_ACTION
+
+ACTION	actSterilisationFillTank:
+
+xSupplyWaterValve:=TRUE;
+xOutValve:=FALSE;
+
+IF xUpperLevel THEN
+	wState:= SterilisationFillingPipeline;
+END_IF
+END_ACTION
+
+ACTION	actSterilisationOperation:
+
+	xSupplyWaterValve:=			TRUE;
+	xSupplyMilkValve:=			FALSE;
+	xOutValve:=					FALSE;
+	xSpiralChooseValve:=			TRUE;
+
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Cooler_PowerSet_1:=		0;
+
+	Heater_xNoFeedback_1:=	FALSE;
+	rHeaterSetOut:=				rHeatSet;
+
+	tnBeforeBypass(IN:= (NOT xOutBypass)  , PT:= WORD_TO_TIME(wBypassPeriod)*1000);
+	IF tnBeforeBypass.Q THEN
+		xOutBypass:=TRUE;
+	END_IF
+
+	tnWaitBypass(IN:=xOutBypass, PT:= WORD_TO_TIME(wBypassOpnTime)*1000);
+	IF (tnWaitBypass.Q) THEN
+
+		xOutBypass:=FALSE;
+	END_IF
+
+	tnStartOperation(IN:= rTempAfterSpiral > 85, PT:= T#5S);
+
+	IF tnStartOperation.Q THEN
+		xStartOperation:= TRUE;
+	END_IF
+
+	IF wTimePassed > wSterilisationTime THEN
+		tnTimeOperation(IN:=xStartOperation, PT:= T#0S);
+	ELSE
+		tnTimeOperation(IN:=xStartOperation, PT:= (WORD_TO_TIME(wSterilisationTime)*1000) - PauseOperationTime);
+	END_IF
+	wTimePassed:=REAL_TO_WORD(TIME_TO_REAL(tnTimeOperation.ET)/1000) + wTimeBeforePause;
+	IF tnTimeOperation.Q  THEN
+		tnTimeOperation(IN:=FALSE);
+		xStartOperation:=FALSE;
+		wState:= SterilStayOnFinalCycle;
+	END_IF
+END_ACTION
+
+ACTION	actSterilisationSetTemperatures:
+
+	xSupplyWaterValve:=			TRUE;
+	xSupplyMilkValve:=			FALSE;
+	xOutValve:=					FALSE;
+	xSpiralChooseValve:=			TRUE;
+	xOutBypass:=					FALSE;
+	xP1:=							TRUE;
+	
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Cooler_PowerSet_1:=		0;
+
+	Heater_xNoFeedback_1:=	FALSE;
+	rHeaterSetOut:=				rHeatSet;
+
+	tnWaitTemperature(IN:= rTempAfterSpiral > 85, pt:=t#5s);
+	IF tnWaitTemperature.Q THEN
+		wState:= SterilisationOperation;
+	END_IF
+END_ACTION
+
+ACTION	actSterilStayOnFinalCycle:
+
+	xSupplyWaterValve:=			TRUE;
+	xSupplyMilkValve:=			FALSE;
+	xOutValve:=					FALSE;
+	xOutBypass:=					FALSE;
+	xSpiralChooseValve:=			TRUE;
+	xP1:=							TRUE;
+
+	rUZ_FlawSet:=				rFlawSet;
+	xUZ1:=							TRUE;
+	Heater_xNoFeedback_1:=	TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+	Cooler_PowerSet_1:=		0;
+	IF xPause THEN
+		wState:=  SterilisationPause;
+	ELSE
+		wState:= Sterilisation_Stop;
+	END_IF
+END_ACTION
+
+
+
+
+
+
+
+
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Process\/Sterilisation' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prSterilisation
+VAR
+	Sterilisation: fbSterilisation;
+END_VAR
+(* @END_DECLARATION := '0' *)
+Sterilisation(
+	xReady:= TRUE,
+	rTempBeforeHeat:= rTempBeforeHeat,
+	rTempAfterHeat:= rTempAfterHeat,
+	rTempAfterSpiral:= rTempAfterSpiral,
+	rTempOut:= rTempOut,
+	rFlawSet:= rSterilisationFlawSet,
+	rHeatSet:= 99,
+	rCoolerSet:= , 
+	xUpperLevel:= DI_LH,
+	xBottomLevel:= DI_LL,
+	wWatingFillingPipelineTime:= wWatingFillingPipelineTime,
+	UZ_Working:= DI_FeedBackSwitchLine_UZ1,
+	wSterilisationTime:= rSterilisationTime,
+	wBypassPeriod:= wBypassPeriod,
+	wBypassOpnTime:= wBypassOpnTime,
+	xStart:= xStartSterilisation,
+	xPause:= xPauseSterilisation,
+	xStopAll:= xStopAll,
+	xSupplyWaterValve:= xSupply_V6,
+	xSupplyMilkValve:= xSupply_V1,
+	xUZ_BypassValve:= OnAuto_V102,
+	xOutBypass:= OnAuto_V103,
+	xOutValve:= OnAuto_V105,
+	xSpiralChooseValve:= OnAuto_V104,
+	xP1:= Pump_OnAuto_P1,
+	xUZ1:= Pump_OnAuto_UZ1,
+	rUZ_FlawSet:= Pump_FlawAutoSet_1,
+	rHeaterSetOut:= Heater_AutoSetT_1,
+	rCoolerSetOut:= Cooler_AutoSetT_1,
+	Heater_xNoFeedback_1:= Heater_xNoFeedback_1,
+	Cooler_xNoFeedback_1:= Cooler_xNoFeedback_1,
+	Heater_PowerSet_1:= Heater_ManualSetP,
+	Cooler_PowerSet_1:= Cooler_ManualSetP,
+	xResetErr:= xResetAlmAll,
+	wState=> wSterilisationState,
+	wError=> wSterilisationErr,
+	wTimePassed=> wSterilisationTimePassed,
+	wTimeOperationSet=> wSterilisationTimeOperationSet);
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Process\/Washing' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbWashingPasterisator
+VAR_INPUT
+	xReady:				BOOL;
+	wWashingTime:		WORD;
+	UZ_Working:			BOOL;
+	wSterilisationTime:	WORD;
+	wBypassPeriod:		WORD;
+	wOutOpnTime:		WORD;
+	wOutPeriod:			WORD;
+	wBypassOpnTime:	WORD;
+	rFlawSet:				REAL;
+	xUpperLevel:			BOOL;
+	xBottomLevel:			BOOL;
+	xMiddleLevel:			BOOL;
+END_VAR
+VAR_IN_OUT
+
+	xStart:					BOOL;
+	xPause:				BOOL;
+	xStopAll:				BOOL;
+
+	xSupplyWaterValve:			BOOL;
+	xSupplyMilkValve:				BOOL;
+	xUZ_BypassValve:			BOOL;
+
+	xOutBypass:				BOOL;
+	xOutValve:					BOOL;
+	xSpiralChooseValve:		BOOL;
+
+	xP1:						BOOL;
+	xUZ1:						BOOL;
+
+	rUZ_FlawSet:				REAL;
+
+	rHeaterSetOut:			REAL;
+	rCoolerSetOut:			REAL;
+
+	Heater_xNoFeedback_1:	BOOL;
+	Cooler_xNoFeedback_1:	BOOL;
+	Heater_PowerSet_1:		REAL;
+	Cooler_PowerSet_1:		REAL;
+
+END_VAR
+VAR_OUTPUT
+	wState:					WashingPasterisatorStates;
+	wError:						WORD;
+	wTimePassed:			WORD;
+	wTimeOperationSet:		WORD;
+END_VAR
+VAR
+	rtStart:						R_TRIG;
+	ftStart:						F_TRIG;
+	rtPause:					R_TRIG;
+	rtStopAll:					R_TRIG;
+	tnBeforeBypass:			TON;
+	tnWaitBypass:				TON;
+	tnBeforeOut:			TON;
+	tnWaitOut:				TON;
+	xBypasTurn:			BOOL;
+	tnEmptyTank:				TON;
+END_VAR
+(* @END_DECLARATION := '0' *)
+rtStart(CLK:=xStart);
+ftStart(CLK:=xStart);
+rtPause(CLK:=xPause);
+rtStopAll(CLK:=xStopAll);
+
+IF ftStart.Q THEN
+
+	wState:=				Washing_EmptyTank;
+END_IF
+
+
+
+IF rtStopAll.Q THEN
+	actStopAll();
+END_IF
+
+CASE wState OF
+
+			Washing_Stop:
+
+
+				IF rtStart.Q AND xReady THEN
+					wState:= Washing_HalfEmptyTank;
+				END_IF
+
+
+			Washing_HalfEmptyTank:
+
+
+				xSupplyWaterValve:=	FALSE;
+				xSupplyMilkValve:=	FALSE;
+				xOutValve:=			TRUE;
+				xP1:=					TRUE;
+				xUZ1:=					TRUE;
+				xUZ_BypassValve:=	TRUE;
+				rUZ_FlawSet:=		rFlawSet;
+				Heater_xNoFeedback_1:=	TRUE;
+				Cooler_xNoFeedback_1:=	TRUE;
+				Heater_PowerSet_1:=		0;
+				Cooler_PowerSet_1:=		0;
+
+				IF xMiddleLevel THEN
+					wState:= Washing_FillingTankWithSolutions;
+				END_IF
+
+
+
+			Washing_FillingTankWithSolutions:
+
+
+				xSupplyWaterValve:=	FALSE;
+				xSupplyMilkValve:=	TRUE;
+				xOutValve:=			FALSE;
+				xP1:=					TRUE;
+				xUZ1:=					TRUE;
+				rUZ_FlawSet:=		rFlawSet;
+				xUZ_BypassValve:=	TRUE;
+				Heater_xNoFeedback_1:=	TRUE;
+				Cooler_xNoFeedback_1:=	TRUE;
+				Heater_PowerSet_1:=		0;
+				Cooler_PowerSet_1:=		0;
+
+				IF xUpperLevel THEN
+					xOutBypass:=			FALSE;
+					xOutValve:=			TRUE;
+					wState:= 				Washing_Operate;
+				END_IF
+
+
+
+			Washing_Operate:
+
+				xSupplyWaterValve:=	FALSE;
+				xSupplyMilkValve:=	TRUE;
+				xP1:=					TRUE;
+				xUZ1:=					TRUE;
+				xUZ_BypassValve:=	TRUE;
+
+				rUZ_FlawSet:=		rFlawSet;
+
+
+				tnBeforeBypass(IN:= (NOT xOutBypass) AND xOutValve AND xBypasTurn, PT:= WORD_TO_TIME(wBypassPeriod)*1000);
+				IF tnBeforeBypass.Q THEN
+					xOutBypass:=TRUE;
+				END_IF
+			
+				tnWaitBypass(IN:=xOutBypass, PT:= WORD_TO_TIME(wBypassOpnTime)*1000);
+				IF (tnWaitBypass.Q) THEN
+					xBypasTurn:=FALSE;
+					xOutBypass:=FALSE;
+				END_IF
+
+
+				tnBeforeOut(IN:= NOT (xOutValve ), PT:= WORD_TO_TIME(wOutPeriod)*1000);
+				IF tnBeforeOut.Q THEN
+					xBypasTurn:=TRUE;;
+					xOutValve:=TRUE;
+				END_IF
+			
+				tnWaitOut(IN:=xOutValve AND (NOT(  xOutBypass OR xBypasTurn)), PT:= WORD_TO_TIME(wOutOpnTime)*1000);
+				IF (tnWaitOut.Q) THEN
+					xOutValve:=FALSE;
+				END_IF
+
+				IF xPause THEN
+					xBypasTurn:=FALSE;
+					wState:= Washing_Pause;
+				END_IF
+
+
+			Washing_Pause:
+
+
+				xSupplyWaterValve:=	FALSE;
+				xSupplyMilkValve:=	TRUE;
+				xP1:=					TRUE;
+				xUZ1:=					TRUE;
+				xUZ_BypassValve:=	TRUE;
+				xOutBypass:=			FALSE;
+				xOutValve:=			FALSE;
+				rUZ_FlawSet:=		rFlawSet;
+
+				IF NOT xPause THEN
+					xOutBypass:=			FALSE;
+					xOutValve:=			TRUE;
+					wState:= 				Washing_Operate;
+				END_IF
+
+
+
+		Washing_EmptyTank:
+
+				xSupplyWaterValve:=	FALSE;
+				xSupplyMilkValve:=	FALSE;
+				xP1:=					TRUE;
+				xUZ1:=					TRUE;
+				xUZ_BypassValve:=	FALSE;
+				xOutBypass:=			FALSE;
+				xOutValve:=			FALSE;
+				rUZ_FlawSet:=		rFlawSet;
+				xBypasTurn:=			FALSE;
+				tnEmptyTank(IN:= NOT xBottomLevel, PT:=T#5S);
+				IF tnEmptyTank.Q THEN
+					tnEmptyTank(IN:=FALSE);
+					xSupplyWaterValve:=	TRUE;
+					wState:=FillTankWithMilk;
+				END_IF
+				IF
+
+
+
+END_CASE
+END_FUNCTION_BLOCK
+ACTION	actStopAll:
+
+	wError:=						0;
+	xPause:=						FALSE;
+	xStart:=						FALSE;
+	xSupplyWaterValve:=			FALSE;
+	xSupplyMilkValve:=			FALSE;
+	xUZ_BypassValve:=			FALSE;
+	xSpiralChooseValve:=			FALSE;
+	xOutBypass:=					FALSE;
+	xOutValve:=					FALSE;
+	xP1:=							FALSE;
+	xUZ1:=							FALSE;
+	rUZ_FlawSet:=				0;
+	Heater_xNoFeedback_1:=	TRUE;
+	Cooler_xNoFeedback_1:=	TRUE;
+	Heater_PowerSet_1:=		0;
+	Cooler_PowerSet_1:=		0;
+	xBypasTurn:=					FALSE;
+
+	wState:= 						Washing_Stop;
+END_ACTION
+
+
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Process\/Washing' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prWashing
+VAR
+	WashingPasterisator:fbWashingPasterisator;
+END_VAR
+(* @END_DECLARATION := '0' *)
+
+WashingPasterisator(
+	xReady:= wSterilisationState = 0 AND wProductionState = 0,
+	UZ_Working:= DI_FeedBackSwitchLine_UZ1,
+	wBypassPeriod:= wWashingBypassPeriod,
+	wOutOpnTime:= wWashingOutOpnTime,
+	wOutPeriod:= wWashingOutPeriod,
+	wBypassOpnTime:= wWashingBypassOpnTime,
+	rFlawSet:= rProductionrFlawSet,
+	xUpperLevel:= DI_LH,
+	xBottomLevel:= DI_LL,
+	xMiddleLevel:=DI_LM,
+	xStart:= xStartWashing,
+	xPause:= xPauseWashing,
+	xStopAll:= xStopAll,
+	xSupplyWaterValve:= xSupply_V6,
+	xSupplyMilkValve:= xSupply_V1,
+	xUZ_BypassValve:= OnAuto_V102,
+	xOutBypass:= OnAuto_V103,
+	xOutValve:= OnAuto_V105,
+	xSpiralChooseValve:= OnAuto_V104,
+	xP1:= Pump_OnAuto_P1,
+	xUZ1:= Pump_OnAuto_UZ1,
+	rUZ_FlawSet:= Pump_FlawAutoSet_1,
+	rHeaterSetOut:= Heater_AutoSetT_1,
+	rCoolerSetOut:= Cooler_AutoSetT_1,
+	Heater_xNoFeedback_1:= Heater_xNoFeedback_1,
+	Cooler_xNoFeedback_1:= Cooler_xNoFeedback_1,
+	Heater_PowerSet_1:= Heater_ManualSetP,
+	Cooler_PowerSet_1:= Cooler_ManualSetP,
+	wState=> wWashingState,
+	wError=> wWashingErr,
+	wTimePassed=> , 
+	wTimeOperationSet=> );
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Process' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prProcess
+VAR
+END_VAR
+(* @END_DECLARATION := '0' *)
+prProduction();
+prSterilisation();
+prWashing();
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Simulation_' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+FUNCTION_BLOCK fbValveSim
+VAR_INPUT
+	xDO:	BOOL;
+END_VAR
+VAR_OUTPUT
+	xSensor:	BOOL;
+END_VAR
+VAR
+	tnOn:	TON;
+	rtTON:	R_TRIG;
+	FTtON:	F_TRIG;
+END_VAR
+(* @END_DECLARATION := '0' *)
+tnOn(IN:=xDO, pt:=t#2s, Q=>);
+rtTON(CLK:=tnOn.Q);
+FTtON(CLK:=tnOn.Q);
+IF rtTON.Q THEN
+	xSensor:=TRUE;
+END_IF
+IF FTtON.Q THEN
+	xSensor:=FALSE;
+END_IF
+END_FUNCTION_BLOCK
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '\/Simulation_' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM prSimulation
+VAR
+	Pump_1:fbValveSim;
+	Pump_2:fbValveSim;
+	RAMP_AfterHeat: RAMP_REAL;
+	RAMP_rTempAfterSpiral: RAMP_REAL;
+	RAMP_rTempOut: RAMP_REAL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+Pump_1(xDO:= DO_PumpOn_UZ1, xSensor=> DI_FeedBackSwitchLine_UZ1);
+Pump_2(xDO:= DO_PumpOn_P1, xSensor=> DI_FeedBackSwitchLine_P1);
+DI_Pump_InvNorm_UZ1:=TRUE;
+RAMP_AfterHeat(
+	IN:= Heater_PowerSet_1,
+	ASCEND:= 1,
+	DESCEND:= 1,
+	TIMEBASE:= t#1000ms,
+	RESET:= , 
+	OUT=> rTempAfterHeat);
+
+RAMP_rTempAfterSpiral(
+	IN:= Heater_PowerSet_1,
+	ASCEND:= 0.5,
+	DESCEND:= 0.5,
+	TIMEBASE:= t#1000ms,
+	RESET:= , 
+	OUT=> rTempAfterSpiral);
+
+
+RAMP_rTempOut(
+	IN:= rTempAfterSpiral - Cooler_PowerSet_1,
+	ASCEND:= 1,
+	DESCEND:= 1,
+	TIMEBASE:= t#1000ms,
+	RESET:= , 
+	OUT=> rTempOut);
+
+
+
+END_PROGRAM
+
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+PROGRAM PLC_PRG
+VAR
+	xDebug:	BOOL;
+END_VAR
+(* @END_DECLARATION := '0' *)
+IF NOT xDebug THEN
+	InToVars();
+	prInputConvertion();
+END_IF
+
+prProcess();
+prDevice();
+prOutputConversion();
+IF NOT xDebug THEN
+	prVarsToOut();
+ELSE
+	prSimulation();
+END_IF
+
+IF xResetAlmAll THEN
+	xResetAlmAll:=FALSE;
+END_IF
+
+
+END_PROGRAM
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+TYPE PasterisatorProductionStates :
+	(
+	Production_Stop				:= 0,
+	PreparationFillTank			:=1,
+	PreparationFillingPipeline	:=2,
+	PreparationSetTemperatures:=3,
+	EmptyTank					:=4,
+	FillTankWithMilk				:=5,
+	PushingWaterByMilk			:=6,
+	StartWithMilk					:=7,
+	ProcessPause				:=8,
+	ProductionOnCycle			:=9,
+	EmptyTankMilk				:=10,
+	PushingMilkByWater			:=11,
+	StayOnFinalCycle				:=12
+
+	);
+END_TYPE
+
+(* @END_DECLARATION := '0' *)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+TYPE SterilisationStates :
+(
+	Sterilisation_Stop					:= 0,
+	SterilisationFillTank				:=1,
+	SterilisationFillingPipeline		:=2,
+	SterilisationSetTemperatures	:=3,
+	SterilisationOperation				:=4,
+	SterilStayOnFinalCycle			:=5,
+	SterilisationPause				:=6
+
+);
+END_TYPE
+(* @END_DECLARATION := '0' *)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+TYPE WashingPasterisatorStates :
+(
+	Washing_Stop						:= 0,
+	Washing_HalfEmptyTank				:= 1,
+	Washing_FillingTankWithSolutions	:=2,
+	Washing_Operate					:=3,
+	Washing_EmptyTank					:=4,
+	Washing_Pause						:=5
+
+);
+END_TYPE
+(* @END_DECLARATION := '0' *)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'AI_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	AI_OutPressure_PT1:			WORD;
+	AI_TT1:						WORD;
+	AI_TT2:						WORD;
+	AI_TT3:						WORD;
+	AI_TT4:						WORD;
+
+	AI_PowerGet_UZ1:			WORD;
+
+
+END_VAR
+
+(* @OBJECT_END := 'AI_Vars' *)
+(* @CONNECTIONS := AI_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'AO_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+
+	AO_PumpSpeedSet_1:								WORD;
+
+
+	AO_HeaterPowerSet_VR1 AT %MW1060:			WORD;
+	AO_CoolerPowerSet_VR2 AT %MW1062:			WORD;
+
+END_VAR
+
+(* @OBJECT_END := 'AO_Vars' *)
+(* @CONNECTIONS := AO_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'DI_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	DI_FeedBackSwitchLine_UZ1		AT %MW208:		BOOL;	(*	13412	*)
+	DI_Pump_InvNorm_UZ1				AT %MW210:		BOOL;
+	DI_FeedBackSwitchLine_P1			:	BOOL;	(*	13414	*)
+	DI_Pump_InvNorm_P1				:	BOOL;
+
+	DI_LL									AT %MW200	:	BOOL; (* 12488*)
+	DI_LM									AT %MW202	:	BOOL;	(* 12490*)
+	DI_LH									AT %MW204	:	BOOL;	(* 12492*)
+
+END_VAR
+
+(* @OBJECT_END := 'DI_Vars' *)
+(* @CONNECTIONS := DI_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'DO_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	DO_PumpOn_UZ1:			BOOL;
+	DO_PumpOn_P1:			BOOL;
+
+	DO_Green:				BOOL;
+	DO_Yellow:				BOOL;
+	DO_Red:					BOOL;
+	DO_Sound:				BOOL;
+
+
+			
+	DO_V101	:	BOOL;
+	DO_V102	:	BOOL;
+	DO_V103	:	BOOL;
+	DO_V104	:	BOOL;
+	DO_V105	:	BOOL;
+	DO_V106	:	BOOL;
+	DO_V107	:	BOOL;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'DO_Vars' *)
+(* @CONNECTIONS := DO_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Global_Variables' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+END_VAR
+
+(* @OBJECT_END := 'Global_Variables' *)
+(* @CONNECTIONS := Global_Variables
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Heater' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	Heater_AutoSetT_1:					REAL;
+	Cooler_AutoSetT_1:					REAL;
+
+
+END_VAR
+
+(* @OBJECT_END := 'Heater' *)
+(* @CONNECTIONS := Heater
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Alarms' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+
+						
+	wAlm_V101	AT %MW601	:	WORD;	(*	12889	*)
+	wAlm_V102	AT %MW602	:	WORD;	(*	12890	*)
+	wAlm_V103	AT %MW603	:	WORD;	(*	12891	*)
+	wAlm_V104	AT %MW604	:	WORD;	(*	12892	*)
+	wAlm_V105	AT %MW605	:	WORD;	(*	12893	*)
+	wAlm_V106	AT %MW606	:	WORD;	(*	12894	*)
+	wAlm_V107	AT %MW607	:	WORD;	(*	12895	*)
+
+	wProcessAlm AT %MW608	:	WORD;	(*	12896	*)
+
+	Pump_Error_UZ1 			AT %MW609:		WORD; (* 12897 *)
+	Pump_Error_P1 				AT %MW610:		WORD; (* 12898 *)
+
+	xResetAlmAll	AT %MW611	:	BOOL;	(*	1289900	*)
+
+	wCheckAlm:			WORD;
+
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Alarms' *)
+(* @CONNECTIONS := HMI_Alarms
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Heater' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	rTempBeforeHeat				AT %MW100:		REAL;	(* 12388 *)
+	rTempAfterHeat				AT %MW102:		REAL;	(* 12390 *)
+	rTempAfterSpiral				AT %MW104:		REAL;	(* 12392 *)
+	rTempOut						AT %MW106:		REAL;	(* 12394 *)
+	rTcooler						AT %MW140:		REAL;	(* 12428 *)
+						
+	Heater_Error_1 				AT %MW108:		WORD; (* 12396 *)
+	Cooler_Error_1 				AT %MW110:		WORD; (* 12398 *)
+						
+						
+	Heater_xNoFeedback_1		AT %MW116:		BOOL;	(* 12404 *)
+	Cooler_xNoFeedback_1 		AT %MW118:	  	BOOL;	(* 12406 *)
+
+						
+	Heater_ManualSetT_1 		AT %MW124:		REAL;	(* 12412 *)
+	Cooler_ManualSetT_1 		AT %MW126:		REAL;	(* 12414 *)
+						
+						
+	Heater_PowerSet_1 			AT %MW132:		REAL;	(* 12420 *)
+	Cooler_PowerSet_1 			AT %MW134:		REAL;	(* 12422 *)
+
+	Heater_ManualSetP 		AT %MW144:		REAL;	(* 12412 *)
+	Cooler_ManualSetP 		AT %MW148:		REAL;	(* 12414 *)
+
+
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN
+
+
+
+	Heater_xManualMode_1		AT %MW1140	:			BOOL; 	(*	13428	*)
+	Cooler_xManualMode_2		AT %MW1142	:			BOOL; 	(*	13430	*)
+END_VAR
+(* @OBJECT_END := 'HMI_Heater' *)
+(* @CONNECTIONS := HMI_Heater
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Process' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+		xAllAuto					AT %MW900	:			BOOL;
+
+		xStartProduction			AT %MW916	:			BOOL;
+		xStopAll					AT %MW918	:			BOOL;
+		xContinueWithMilk		AT %MW920	:			BOOL;
+		xStartCheckingValve		AT %MW922	:			BOOL;
+		xProductionPause		AT %MW924	:			BOOL;
+		xProductionOnCycle		AT %MW926	:			BOOL;
+
+		wProductionState			AT %MW928	:			WORD;
+		wProductionErr			AT %MW930	:			WORD;
+
+
+
+		xStartSterilisation			AT %MW944	:			BOOL;
+		xPauseSterilisation		AT %MW946	:			BOOL;
+
+		wSterilisationState		AT %MW948	:			WORD;
+		wSterilisationErr			AT %MW950	:			WORD;
+
+		wSterilisationTimePassed		AT %MW952	:			WORD;
+
+
+
+
+		xStartWashing				AT %MW964	:	BOOL;
+		xPauseWashing				AT %MW966	:	BOOL;
+
+		wWashingState			AT %MW968	:			WORD;
+		wWashingErr			AT %MW970	:			WORD;
+
+
+
+		xAllisAuto	AT %MW978	:			BOOL;
+END_VAR
+
+VAR_GLOBAL RETAIN
+		rProductionrFlawSet		AT %MW902	:			REAL;
+		rProductionrHeatSet		AT %MW904	:			REAL;
+		rProductionrCoolerSet	AT %MW908	:			REAL;
+		rProductionCheckTempAfterSpiral	AT %MW912	:			REAL;
+		rProductionrCheckTcooler	AT %MW974	:			REAL;
+
+		xUseAllSpirals			AT %MW914	:			BOOL;
+
+		rSterilisationFlawSet		AT %MW932	:			REAL;
+		rSterilisationTime			AT %MW934	:			WORD;
+		wBypassPeriod			AT %MW936	:			WORD;
+		wBypassOpnTime		AT %MW938	:			WORD;
+		wOutPeriod				AT %MW940	:			WORD;
+		wOutOpnTime				AT %MW942	:			WORD;
+		wSterilisationTimeOperationSet			AT %MW954	:			WORD;
+
+		wWashingOutOpnTime	AT %MW956	:	WORD;
+		wWashingOutPeriod		AT %MW958	:	WORD;
+		wWashingBypassOpnTime	AT %MW960	:	WORD;
+		wWashingBypassPeriod		AT %MW962	:	WORD;
+		rWashingFlawSet		AT %MW978	:			REAL;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Process' *)
+(* @CONNECTIONS := HMI_Process
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Pump' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+	Pump_FlawGet_1 			AT %MW300:		REAL;	(* 12588 *)
+
+
+	Pump_PowerGet:		REAL;
+
+	Pump_OnManual_UZ1 			AT %MW308:		BOOL;	(* 12596 *)
+	Pump_OnManual_P1			AT %MW310:		BOOL;	(* 12598 *)
+
+
+	Pump_NoFeedback_UZ1 		AT %MW316:		BOOL;	(* 12604 *)
+
+
+	Pump_OnAuto_UZ1				AT %MW356	:	BOOL;	(*	12644	*)
+	Pump_OnAuto_P1				AT %MW358	:	BOOL;	(*	12646	*)
+
+
+
+
+	PumpSpeedSet_UZ1			AT %MW372	:	REAL;	(*	12660	*)
+	PumpSpeedSet_P1			AT %MW374	:	REAL;	(*	12662	*)
+
+
+	Pump_FeedbackOn_UZ1	AT %MW380	:	BOOL;	(*	12668	*)
+	Pump_FeedbackOn_P1	AT %MW382	:	BOOL;	(*	12670	*)
+
+
+
+
+	Pump_State_UZ1		AT %MW1024	:	WORD;	(*	13312	*)
+	Pump_State_P1		AT %MW1026	:	BOOL;	(*	13314	*)
+
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN PERSISTENT
+
+
+
+	Pump_ManualMode_UZ1 		AT %MW332:		BOOL;	(* 12620 *)
+	Pump_ManualMode_P1 		AT %MW334:		BOOL;	(* 12622 *)
+
+
+	Pump_FlawManualSet_1 	AT %MW340:		WORD; (* 12628 *)
+
+
+	Pump_VelocitySet_1 			AT %MW348:		WORD; (* 12636 *)
+
+
+	sCheckSrting	AT %MW1050	:	WORD;	(*	13338	*)
+
+END_VAR
+(* @OBJECT_END := 'HMI_Pump' *)
+(* @CONNECTIONS := HMI_Pump
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Sensors' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	OutPressure_PT1 AT %MW400: REAL;
+	ColerPressure_PT1 AT %MW404: REAL;
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Sensors' *)
+(* @CONNECTIONS := HMI_Sensors
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Settings' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+END_VAR
+VAR_GLOBAL RETAIN
+
+
+	Heater_Kp								AT %MW518:		REAL:=5;	(* 12806 *)
+	Heater_Ki								AT %MW520:		REAL:=3;	(* 12808 *)
+	Heater_Kd								AT %MW522:		REAL;	(* 12810 *)
+	Heater_wMaxPower 					AT %MW524:		WORD:=100;	(* 12812 *)
+	Heater_wMinPower 					AT %MW526:		WORD;	(* 12814 *)
+	Pump_Kp								AT %MW528:		REAL:=0.1;	(* 12816 *)
+	Pump_Ki								AT %MW530:		REAL:=15;	(* 12818 *)
+	Pump_Kd								AT %MW532:		REAL;	(* 12820 *)
+	Pump_MaxSpeed 					AT %MW534:		WORD:=45;	(* 12822 *)
+	Pump_MinSpeed 						AT %MW536:		WORD;	(* 12824 *)
+
+	Cooler_Kp								AT %MW538:		REAL:=5;	(* 12826 *)
+	Cooler_Ki								AT %MW542:		REAL:=3;	(* 12830 *)
+	Cooler_Kd								AT %MW546:		REAL;	(* 12834 *)
+	Cooler_wMaxPower 					AT %MW550:		WORD:=100;	(* 12838 *)
+	Cooler_wMinPower 					AT %MW554:		WORD;	(* 12842 *)
+
+	rThreasholdPressure					AT %MW560	:		REAL;
+	wWatingFillingPipelineTime			AT %MW564	:		WORD:=80;
+	wPushingTime						AT %MW570	:		WORD:=80;
+
+	wPassword		AT %MW1816	:	WORD;
+
+
+	wDaysRemain AT %MW1820	:	WORD;
+	wDayOld: WORD;
+
+
+END_VAR
+(* @OBJECT_END := 'HMI_Settings' *)
+(* @CONNECTIONS := HMI_Settings
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Valves' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	OnManual_V101	AT %MW700	:	BOOL;	(*	12988	*)
+	OnManual_V102	AT %MW701	:	BOOL;	(*	12989	*)
+	OnManual_V103	AT %MW702	:	BOOL;	(*	12990	*)
+	OnManual_V104	AT %MW703	:	BOOL;	(*	12991	*)
+	OnManual_V105	AT %MW704	:	BOOL;	(*	12992	*)
+	OnManual_V106	AT %MW705	:	BOOL;	(*	12993	*)
+	OnManual_V107	AT %MW706	:	BOOL;	(*	12994	*)
+
+							
+							
+							
+							
+	xState_V101	AT %MW751	:	BOOL;	(*	13039	*)
+	xState_V102	AT %MW752	:	BOOL;	(*	13040	*)
+	xState_V103	AT %MW753	:	BOOL;	(*	13041	*)
+	xState_V104	AT %MW754	:	BOOL;	(*	13042	*)
+	xState_V105	AT %MW755	:	BOOL;	(*	13043	*)
+	xState_V106	AT %MW756	:	BOOL;	(*	13044	*)
+	xState_V107	AT %MW757	:	BOOL;	(*	13045	*)
+
+
+							
+	OnAuto_V101	AT %MW802	:	BOOL;	(*	13090	*)
+	OnAuto_V102	AT %MW803	:	BOOL;	(*	13091	*)
+	OnAuto_V103	AT %MW804	:	BOOL;	(*	13092	*)
+	OnAuto_V104	AT %MW805	:	BOOL;	(*	13093	*)
+	OnAuto_V105	AT %MW806	:	BOOL;	(*	13094	*)
+	OnAuto_V106	AT %MW807	:	BOOL;	(*	13095	*)
+	OnAuto_V107	AT %MW808	:	BOOL;	(*	13096	*)
+
+
+
+
+	xStopFillingWaterTank: BOOL;
+
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN PERSISTENT
+
+	ManualMode_V101	AT %MW853	:	BOOL;	(*	13141	*)
+	ManualMode_V102	AT %MW854	:	BOOL;	(*	13142	*)
+	ManualMode_V103	AT %MW855	:	BOOL;	(*	13143	*)
+	ManualMode_V104	AT %MW856	:	BOOL;	(*	13144	*)
+	ManualMode_V105	AT %MW857	:	BOOL;	(*	13145	*)
+	ManualMode_V106	AT %MW858	:	BOOL;	(*	13146	*)
+	ManualMode_V107	AT %MW859	:	BOOL;	(*	13147	*)
+
+
+
+END_VAR
+(* @OBJECT_END := 'HMI_Valves' *)
+(* @CONNECTIONS := HMI_Valves
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Pump' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	Pump_FlawAutoSet_1:		REAL;
+	Pump_FlawAutoSet_2:		REAL;
+	Pump_FlawAutoSet_3:		REAL;
+	Pump_FlawAutoSet_4:		REAL;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'Pump' *)
+(* @CONNECTIONS := Pump
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Valves' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+	xSupply_V1: BOOL;
+	xSupply_V6: BOOL;
+END_VAR
+
+(* @OBJECT_END := 'Valves' *)
+(* @CONNECTIONS := Valves
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Variable_Configuration' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_CONFIG
+END_VAR
+
+(* @OBJECT_END := 'Variable_Configuration' *)
+(* @CONNECTIONS := Variable_Configuration
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+
+LIBRARY
+Iecsfc.lib 29.6.15 10:12:18
+(* @LIBRARYSYMFILEINFO := '0' *)
+NumOfPOUs: 1
+SFCActionControl: 0
+NumOfGVLs: 1
+Globale_Variablen: 0
+END_LIBRARY
+
+LIBRARY
+Standard.lib 29.6.15 10:12:18
+(* @LIBRARYSYMFILEINFO := '0' *)
+NumOfPOUs: 26
+ASCIIBYTE_TO_STRING: 2048
+CONCAT: 0
+CTD: 0
+CTU: 0
+CTUD: 0
+DELETE: 0
+F_TRIG: 0
+FIND: 0
+INSERT: 0
+LEFT: 0
+LEN: 0
+MID: 0
+R_TRIG: 0
+REAL_STATE: 2048
+REPLACE: 0
+RIGHT: 0
+RS: 0
+RTC: 0
+SEMA: 0
+SR: 0
+STANDARD_VERSION: 2048
+STRING_COMPARE: 2048
+STRING_TO_ASCIIBYTE: 2048
+TOF: 0
+TON: 0
+TP: 0
+NumOfGVLs: 1
+'Global Variables 0': 0
+END_LIBRARY
+
+LIBRARY
+SYSLIBCALLBACK.LIB 29.6.15 10:12:18
+(* @LIBRARYSYMFILEINFO := '0' *)
+NumOfPOUs: 2
+SysCallbackRegister: 0
+SysCallbackUnregister: 0
+NumOfGVLs: 2
+Globale_Variablen: 0
+Version: 0
+END_LIBRARY
+
+LIBRARY
+Util.lib 30.1.13 14:05:12
+(* @LIBRARYSYMFILEINFO := '0' *)
+NumOfPOUs: 21
+BCD_TO_INT: 2048
+BLINK: 2048
+CHARCURVE: 2048
+DERIVATIVE: 2048
+EXTRACT: 2048
+GEN: 2048
+HYSTERESIS: 2048
+INT_TO_BCD: 2048
+INTEGRAL: 2048
+LIMITALARM: 2048
+PACK: 2048
+PD: 2048
+PID: 2048
+PUTBIT: 2048
+RAMP_INT: 2048
+RAMP_REAL: 2048
+STATISTICS_INT: 2048
+STATISTICS_REAL: 2048
+UNPACK: 2048
+VARIANCE: 2048
+Version_Util: 2048
+NumOfGVLs: 1
+Globale_Variablen: 0
+END_LIBRARY
