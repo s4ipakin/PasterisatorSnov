@@ -1,0 +1,1343 @@
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'ComPortErrors' *)
+(* @PATH := '\/IzovacLib\/Serial' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '4096' *)
+VAR_GLOBAL CONSTANT
+	strCOM_PORT_ERR_MSG	:ARRAY [0..15] OF STRING [48]:='No errors',
+									'This library is not supported by the firmware',
+									'COM port outside of the valid area',
+									'No assignement of FB instance to COM port',
+									'FB instance already assigned to COM port',
+									'COM port is already opened',
+									'COM port is already closed',
+									'COM port is not opened',
+									'A write operation is still active (COM1)',
+									'PRMs are not supported by the COM port',
+									'Settings of the bus module could not be read',
+									'Library version temporary settings incorrect',
+									'Bus module could not be initialised',
+									'Error when writing data into the FIFO memory',
+									'The contents of the FIFO memory was not sent',
+									'Internal error';
+	iBuffSize		:	INT := 255; (* Default-Size of the RingBuffer *)
+END_VAR
+
+(* @OBJECT_END := 'ComPortErrors' *)
+(* @CONNECTIONS := ComPortErrors
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'AI_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	AI_Conc_Line1:			WORD;
+	AI_Conc_Line2:			WORD;
+	AI_Conc_Line3:			WORD;
+	AI_Conc_Line4:			WORD;
+
+	AI_CleanWaterLevel:		WORD;
+	AI_UsedWaterLevel:		WORD;
+	AI_AccidLevel:				WORD;
+	AI_AlkaliLevel:				WORD;
+
+	AI_Temp_Accid:			WORD;
+	AI_Temp_Alkali:			WORD;
+	AI_Temp_Line3:			WORD;
+	AI_Temp_Line4:			WORD;
+
+	AI_Heater_Tget_1 	:	WORD;
+	AI_Heater_Tget_2 	:	WORD;
+	AI_Heater_Tget_3 	:	WORD;
+	AI_Heater_Tget_4 	:	WORD;
+			
+	AI_Heater_BackTget_1	:	WORD;
+	AI_Heater_BackTget_2	:	WORD;
+	AI_Heater_BackTget_3	:	WORD;
+	AI_Heater_BackTget_4	:	WORD;
+
+
+
+	AI_Flaw_Line1:			WORD;
+	AI_Flaw_Line2:			WORD;
+	AI_Flaw_Line3:			WORD;
+	AI_Flaw_Line4:			WORD;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'AI_Vars' *)
+(* @CONNECTIONS := AI_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'AO_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+
+	AO_PumpSpeedSet_1:			WORD;
+	AO_PumpSpeedSet_2:			WORD;
+	AO_PumpSpeedSet_3:			WORD;
+	AO_PumpSpeedSet_4:			WORD;
+
+	AO_HeaterPowerSet_1 AT %MW1060:			WORD;
+	AO_HeaterPowerSet_2 AT %MW1062:			WORD;
+	AO_HeaterPowerSet_3 AT %MW1064:			WORD;
+	AO_HeaterPowerSet_4 AT %MW1066:			WORD;
+END_VAR
+
+(* @OBJECT_END := 'AO_Vars' *)
+(* @CONNECTIONS := AO_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'DI_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+
+
+	DI_V101	:	BOOL;
+	DI_V102	:	BOOL;
+	DI_V103	:	BOOL;
+	DI_V104	:	BOOL;
+	DI_V105	:	BOOL;
+	DI_V106	:	BOOL;
+	DI_V107	:	BOOL;
+	DI_V108	:	BOOL;
+	DI_V109	:	BOOL;
+	DI_V110	:	BOOL;
+	DI_V111	:	BOOL;
+	DI_V201	:	BOOL;
+	DI_V202	:	BOOL;
+	DI_V203	:	BOOL;
+	DI_V204	:	BOOL;
+	DI_V205	:	BOOL;
+	DI_V206	:	BOOL;
+	DI_V207	:	BOOL;
+	DI_V208	:	BOOL;
+	DI_V209	:	BOOL;
+	DI_V210	:	BOOL;
+	DI_V211	:	BOOL;
+	DI_V301	:	BOOL;
+	DI_V302	:	BOOL;
+	DI_V303	:	BOOL;
+	DI_V304	:	BOOL;
+	DI_V305	:	BOOL;
+	DI_V306	:	BOOL;
+	DI_V307	:	BOOL;
+	DI_V308	:	BOOL;
+	DI_V309	:	BOOL;
+	DI_V310	:	BOOL;
+	DI_V311	:	BOOL;
+	DI_V401	:	BOOL;
+	DI_V402	:	BOOL;
+	DI_V403	:	BOOL;
+	DI_V404	:	BOOL;
+	DI_V405	:	BOOL;
+	DI_V406	:	BOOL;
+	DI_V407	:	BOOL;
+	DI_V408	:	BOOL;
+	DI_V409	:	BOOL;
+	DI_V410	:	BOOL;
+	DI_V411	:	BOOL;
+	DI_V501	:	BOOL;
+	DI_V510	:	BOOL;
+	DI_V511	:	BOOL;
+	DI_V512	:	BOOL;
+	DI_V513	:	BOOL;
+	DI_V514	:	BOOL;
+	DI_V515	:	BOOL;
+
+
+	Pump_InvNorm_1:	BOOL;
+	Pump_InvNorm_2:	BOOL;
+	Pump_InvNorm_3:	BOOL;
+	Pump_InvNorm_4:	BOOL;
+
+	Permition_Line_1:	BOOL;
+	Permition_Line_2:	BOOL;
+	Permition_Line_3:	BOOL;
+	Permition_Line_4:	BOOL;
+	Permition_Line_5:	BOOL;
+
+
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'DI_Vars' *)
+(* @CONNECTIONS := DI_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'DO_Vars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+	DO_PumpOn_1:			BOOL;
+	DO_PumpOn_2:			BOOL;
+	DO_PumpOn_3:			BOOL;
+	DO_PumpOn_4:			BOOL;
+
+	DO_PA11:					BOOL;
+	DO_PA12:					BOOL;
+	DO_PA1:					BOOL;
+	DO_PA2:					BOOL;
+	DO_PA3:					BOOL;
+	DO_PA4:					BOOL;
+
+	DO_V110	:	BOOL;
+	DO_V210	:	BOOL;
+	DO_V310	:	BOOL;
+	DO_V410	:	BOOL;
+	DO_V111	:	BOOL;
+	DO_V211	:	BOOL;
+	DO_V311	:	BOOL;
+	DO_V411	:	BOOL;
+			
+	DO_V101	:	BOOL;
+	DO_V102	:	BOOL;
+	DO_V103	:	BOOL;
+	DO_V104	:	BOOL;
+	DO_V105	:	BOOL;
+	DO_V106	:	BOOL;
+	DO_V107	:	BOOL;
+	DO_V108	:	BOOL;
+	DO_V109	:	BOOL;
+	DO_V201	:	BOOL;
+	DO_V202	:	BOOL;
+	DO_V203	:	BOOL;
+	DO_V204	:	BOOL;
+	DO_V205	:	BOOL;
+	DO_V206	:	BOOL;
+	DO_V207	:	BOOL;
+	DO_V208	:	BOOL;
+	DO_V209	:	BOOL;
+	DO_V301	:	BOOL;
+	DO_V302	:	BOOL;
+	DO_V303	:	BOOL;
+	DO_V304	:	BOOL;
+	DO_V305	:	BOOL;
+	DO_V306	:	BOOL;
+	DO_V307	:	BOOL;
+	DO_V308	:	BOOL;
+	DO_V309	:	BOOL;
+	DO_V401	:	BOOL;
+	DO_V402	:	BOOL;
+	DO_V403	:	BOOL;
+	DO_V404	:	BOOL;
+	DO_V405	:	BOOL;
+	DO_V406	:	BOOL;
+	DO_V407	:	BOOL;
+	DO_V408	:	BOOL;
+	DO_V409	:	BOOL;
+		
+	DO_V501	:	BOOL;
+		
+	DO_V511	:	BOOL;
+	DO_V510	:	BOOL;
+	DO_V512	:	BOOL;
+	DO_V513	:	BOOL;
+	DO_V514	:	BOOL;
+	DO_V515	:	BOOL;
+
+	DO_ReadyToWash:					BOOL;
+	DO_WashimgIsGoing:				BOOL;
+	DO_PumpIsWorking:					BOOL;
+
+	SwitchOnRemotePump_1	:	BOOL;
+	SwitchOnRemotePump_2	:	BOOL;
+	SwitchOnRemotePump_3	:	BOOL;
+	SwitchOnRemotePump_4	:	BOOL;
+
+	SwitchOnRemotePump_1_1	:	BOOL;
+	SwitchOnRemotePump_1_2	:	BOOL;
+	SwitchOnRemotePump_1_3	:	BOOL;
+
+
+END_VAR
+
+(* @OBJECT_END := 'DO_Vars' *)
+(* @CONNECTIONS := DO_Vars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Global_Variables' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+	Bob: BOOL;
+	Seed: WORD;
+	ffggh:WORD;
+	kkfggj:WORD;
+	xReadyForWashing:	BOOL;
+
+END_VAR
+
+(* @OBJECT_END := 'Global_Variables' *)
+(* @CONNECTIONS := Global_Variables
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Heater' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	Heater_AutoSetT_1:					REAL;
+	Heater_AutoSetT_2:					REAL;
+	Heater_AutoSetT_3:					REAL;
+	Heater_AutoSetT_4:					REAL;
+
+END_VAR
+
+(* @OBJECT_END := 'Heater' *)
+(* @CONNECTIONS := Heater
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Alarms' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	xResetAlmAll	AT %MW600	:	BOOL;	(*	12888	*)
+						
+	wAlm_V101	AT %MW601	:	WORD;	(*	12889	*)
+	wAlm_V102	AT %MW602	:	WORD;	(*	12890	*)
+	wAlm_V103	AT %MW603	:	WORD;	(*	12891	*)
+	wAlm_V104	AT %MW604	:	WORD;	(*	12892	*)
+	wAlm_V105	AT %MW605	:	WORD;	(*	12893	*)
+	wAlm_V106	AT %MW606	:	WORD;	(*	12894	*)
+	wAlm_V107	AT %MW607	:	WORD;	(*	12895	*)
+	wAlm_V108	AT %MW608	:	WORD;	(*	12896	*)
+	wAlm_V109	AT %MW609	:	WORD;	(*	12897	*)
+	wAlm_V110	AT %MW610	:	WORD;	(*	12898	*)
+	wAlm_V111	AT %MW611	:	WORD;	(*	12899	*)
+	wAlm_V201	AT %MW612	:	WORD;	(*	12900	*)
+	wAlm_V202	AT %MW613	:	WORD;	(*	12901	*)
+	wAlm_V203	AT %MW614	:	WORD;	(*	12902	*)
+	wAlm_V204	AT %MW615	:	WORD;	(*	12903	*)
+	wAlm_V205	AT %MW616	:	WORD;	(*	12904	*)
+	wAlm_V206	AT %MW617	:	WORD;	(*	12905	*)
+	wAlm_V207	AT %MW618	:	WORD;	(*	12906	*)
+	wAlm_V208	AT %MW619	:	WORD;	(*	12907	*)
+	wAlm_V209	AT %MW620	:	WORD;	(*	12908	*)
+	wAlm_V210	AT %MW621	:	WORD;	(*	12909	*)
+	wAlm_V211	AT %MW622	:	WORD;	(*	12910	*)
+	wAlm_V301	AT %MW623	:	WORD;	(*	12911	*)
+	wAlm_V302	AT %MW624	:	WORD;	(*	12912	*)
+	wAlm_V303	AT %MW625	:	WORD;	(*	12913	*)
+	wAlm_V304	AT %MW626	:	WORD;	(*	12914	*)
+	wAlm_V305	AT %MW627	:	WORD;	(*	12915	*)
+	wAlm_V306	AT %MW628	:	WORD;	(*	12916	*)
+	wAlm_V307	AT %MW629	:	WORD;	(*	12917	*)
+	wAlm_V308	AT %MW630	:	WORD;	(*	12918	*)
+	wAlm_V309	AT %MW631	:	WORD;	(*	12919	*)
+	wAlm_V310	AT %MW632	:	WORD;	(*	12920	*)
+	wAlm_V311	AT %MW633	:	WORD;	(*	12921	*)
+	wAlm_V401	AT %MW634	:	WORD;	(*	12922	*)
+	wAlm_V402	AT %MW635	:	WORD;	(*	12923	*)
+	wAlm_V403	AT %MW636	:	WORD;	(*	12924	*)
+	wAlm_V404	AT %MW637	:	WORD;	(*	12925	*)
+	wAlm_V405	AT %MW638	:	WORD;	(*	12926	*)
+	wAlm_V406	AT %MW639	:	WORD;	(*	12927	*)
+	wAlm_V407	AT %MW640	:	WORD;	(*	12928	*)
+	wAlm_V408	AT %MW641	:	WORD;	(*	12929	*)
+	wAlm_V409	AT %MW642	:	WORD;	(*	12930	*)
+	wAlm_V410	AT %MW643	:	WORD;	(*	12931	*)
+	wAlm_V411	AT %MW644	:	WORD;	(*	12932	*)
+	wAlm_V501	AT %MW645	:	WORD;	(*	12933	*)
+	wAlm_V510	AT %MW646	:	WORD;	(*	12934	*)
+	wAlm_V511	AT %MW647	:	WORD;	(*	12935	*)
+	wAlm_V512	AT %MW648	:	WORD;	(*	12936	*)
+	wAlm_V513	AT %MW649	:	WORD;	(*	12937	*)
+	wAlm_V514	AT %MW650	:	WORD;	(*	12938	*)
+	wAlm_V515	AT %MW651	:	WORD;	(*	12939	*)
+							
+	wCheckAlm:			WORD;			
+
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Alarms' *)
+(* @CONNECTIONS := HMI_Alarms
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Heater' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	Heater_Tget_1 				AT %MW100:		REAL;	(* 12388 *)
+	Heater_Tget_2 				AT %MW102:		REAL;	(* 12390 *)
+	Heater_Tget_3 				AT %MW104:		REAL;	(* 12392 *)
+	Heater_Tget_4 				AT %MW106:		REAL;	(* 12394 *)
+
+	Heater_Error_1 				AT %MW108:		WORD; (* 12396 *)
+	Heater_Error_2 				AT %MW110:		WORD; (* 12398 *)
+	Heater_Error_3 				AT %MW112:		WORD; (* 12400 *)
+	Heater_Error_4 				AT %MW114:		WORD; (* 12402 *)
+
+	Heater_xNoFeedback_1		AT %MW116:		BOOL;	(* 12404 *)
+	Heater_xNoFeedback_2 		AT %MW118:	  	BOOL;	(* 12406 *)
+	Heater_xNoFeedback_3 		AT %MW120:		BOOL;	(* 12408 *)
+	Heater_xNoFeedback_4 		AT %MW122:		BOOL;	(* 12410 *)
+
+	Heater_ManualSetT_1 		AT %MW124:		REAL;	(* 12412 *)
+	Heater_ManualSetT_2 		AT %MW126:		REAL;	(* 12414 *)
+	Heater_ManualSetT_3 		AT %MW128:	  	REAL;	(* 12416 *)
+	Heater_ManualSetT_4		AT %MW130:		REAL;	(* 12418 *)
+
+	Heater_PowerSet_1 			AT %MW132:		REAL;	(* 12420 *)
+	Heater_PowerSet_2 			AT %MW134:		REAL;	(* 12422 *)
+	Heater_PowerSet_3 			AT %MW136:		REAL;	(* 12424 *)
+	Heater_PowerSet_4 			AT %MW138:		REAL;	(* 12426 *)
+
+	HeaterPowerSet_1	AT %MW140	:	REAL;	(*	12428	*)
+	HeaterPowerSet_2	AT %MW142	:	REAL;	(*	12430	*)
+	HeaterPowerSet_3	AT %MW144	:	REAL;	(*	12432	*)
+	HeaterPowerSet_4	AT %MW146	:	REAL;	(*	12432	*)
+
+	Heater_BackTget_1	AT %MW148	:	REAL;	(*	12434	*)
+	Heater_BackTget_2	AT %MW150	:	REAL;	(*	12436	*)
+	Heater_BackTget_3	AT %MW152	:	REAL;	(*	12438	*)
+	Heater_BackTget_4	AT %MW154	:	REAL;	(*	12440	*)
+
+
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN
+
+
+
+	Heater_xManualMode_1		AT %MW1140	:			BOOL; 	(*	13428	*)
+	Heater_xManualMode_2		AT %MW1142	:			BOOL; 	(*	13430	*)
+	Heater_xManualMode_3		AT %MW1144	:			BOOL; 	(*	13432	*)
+	Heater_xManualMode_4		AT %MW1146	:			BOOL; 	(*	13434	*)
+END_VAR
+(* @OBJECT_END := 'HMI_Heater' *)
+(* @CONNECTIONS := HMI_Heater
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Process' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+
+	xDissolving_Pause			AT %MW199:		BOOL;	(* 12487 *)
+	xResetErrorAll 				AT %MW200:		BOOL;	(* 12488 *)
+	xDissolving_Start 				AT %MW201:		BOOL;	(* 12489 *)
+	xDissolving_Stop 				AT %MW202:		BOOL;	(* 12490 *)
+
+
+
+
+	xStartDissolvingAlkali		AT %MW232	:	BOOL;	(*	12520	*)
+	xStartDissolvingAccid		AT %MW233	:	BOOL;	(*	12521	*)
+	xPauseDissolvingAlkali	AT %MW234	:	BOOL;	(*	12522	*)
+	xPauseDissolvingAccid	AT %MW235	:	BOOL;	(*	12523	*)
+
+	wChosenRecipeLine1 		AT %MW203:		WORD:=1;(* 12491 *)
+	wChosenRecipeLine2 		AT %MW204:		WORD:=1;(* 12492 *)
+	wChosenRecipeLine3 		AT %MW205:		WORD:=1;(* 12493 *)
+	wChosenRecipeLine4 		AT %MW206:		WORD:=1;(* 12494 *)
+
+	wDissolvingStateLine1 		AT %MW207:		WORD;(* 12495 *)
+	wDissolvingStateLine2 		AT %MW208:		WORD;(* 12496 *)
+	wDissolvingStateLine3 		AT %MW209:		WORD;(* 12497 *)
+	wDissolvingStateLine4 		AT %MW210:		WORD;(* 12498 *)
+
+	wDissolvingPauseStateLine1		AT %MW236	:	WORD;	(*	12524	*)
+	wDissolvingPauseStateLine2		AT %MW237	:	WORD;	(*	12525	*)
+	wDissolvingPauseStateLine3		AT %MW238	:	WORD;	(*	12526	*)
+	wDissolvingPauseStateLine4		AT %MW239	:	WORD;	(*	12527	*)
+
+	wDissolvingError 				AT %MW211:		WORD;(* 12499 *)
+
+	xStartWashingLine1 			AT %MW212:		BOOL;	(* 12500 *)
+	xStartWashingLine2 			AT %MW213:		BOOL;	(* 12501 *)
+	xStartWashingLine3 			AT %MW214:		BOOL;	(* 12502 *)
+	xStartWashingLine4 			AT %MW215:		BOOL;	(* 12503 *)
+
+	xPauseWashingLine1	AT %MW240	:	BOOL;	(*	12528	*)
+	xPauseWashingLine2	AT %MW241	:	BOOL;	(*	12529	*)
+	xPauseWashingLine3	AT %MW242	:	BOOL;	(*	12530	*)
+	xPauseWashingLine4	AT %MW243	:	BOOL;	(*	12531	*)
+
+	wWashingPauseStateLine1	AT %MW244	:	WORD;	(*	12532	*)
+	wWashingPauseStateLine2	AT %MW245	:	WORD;	(*	12533	*)
+	wWashingPauseStateLine3	AT %MW246	:	WORD;	(*	12534	*)
+	wWashingPauseStateLine4	AT %MW247	:	WORD;	(*	12535	*)
+
+	wWashingTimePassed1	AT %MW248	:	WORD;	(*	12536	*)
+	wWashingTimePassed2	AT %MW249	:	WORD;	(*	12537	*)
+	wWashingTimePassed3	AT %MW250	:	WORD;	(*	12538	*)
+	wWashingTimePassed4	AT %MW251	:	WORD;	(*	12539	*)
+
+	wWashingOperTimeSet1	AT %MW252	:	WORD;	(*	12540	*)
+	wWashingOperTimeSet2	AT %MW253	:	WORD;	(*	12541	*)
+	wWashingOperTimeSet3	AT %MW254	:	WORD;	(*	12542	*)
+	wWashingOperTimeSet4	AT %MW255	:	WORD;	(*	12543	*)
+
+
+
+	wWashingStateLine1 		AT %MW216:		WORD;(* 12504 *)
+	wWashingStateLine2 		AT %MW217:		WORD;(* 12505 *)
+	wWashingStateLine3 		AT %MW218:		WORD;(* 12506 *)
+	wWashingStateLine4 		AT %MW219:		WORD;(* 12507 *)
+
+
+	wWashingStateBitsLine1: 				DWORD;(* 12504 *)
+	wWashingStateBitsLine2 : 				DWORD;(* 12504 *)
+	wWashingStateBitsLine3 : 				DWORD;(* 12504 *)
+	wWashingStateBitsLine4 : 				DWORD;(* 12504 *)
+
+	wDissolvingStateBitsLine1 : 				DWORD;(* 12504 *)
+	wDissolvingStateBitsLine2 : 				DWORD;(* 12504 *)
+	wDissolvingStateBitsLine3 	: 			DWORD;(* 12504 *)
+	wDissolvingStateBitsLine4 : 				DWORD;(* 12504 *)
+
+
+	wWashingErr 					AT %MW220:		WORD;(* 12508 *)
+	wWachingLine 				AT %MW221:		WORD;(* 12509 *)
+
+	SelfWashDoWaterTank  			AT %MW222:		BOOL;	(* 12510 *)
+	SelfWashDoUsedWaterTank  	AT %MW223:		BOOL;	(* 12511 *)
+	SelfWashDoAlkaliTank  			AT %MW224:		BOOL;	(* 12512 *)
+	SelfWashDoAccidTank  			AT %MW225:		BOOL;	(* 12513 *)
+	SelfWashWaterIsReady  			AT %MW226:		BOOL;	(* 12514 *)
+	SelfWashUsedWaterIsReady 	 AT %MW227:		BOOL;	(* 12515 *)
+	SelfWashAlkaliIsReady  			AT %MW228:		BOOL;	(* 12516 *)
+	SelfWashAccidIsReady  			AT %MW229:		BOOL;	(* 12517 *)
+	xStartSelfWashing 				AT %MW230:		BOOL;	(* 12518 *)
+	SelfWashState 					AT %MW231:		WORD;(* 12519 *)
+	SelfWashStateBits:									DWORD;
+	SelfWashStateBits2:									DWORD;
+
+	xSelsWashingPause			AT %MW256	:	BOOL;		(*	12544	*)
+	SelfWashPauseState			AT %MW257	:	WORD;	(*	12545	*)
+	SelfWashingTimePast		AT %MW258	:	WORD;	(*	12546	*)
+	SelfWashingOperTimeSet	AT %MW259	:	WORD;	(*	12547	*)
+	SelfWashingAcknawlage		AT %MW260	:	BOOL;		(*	12548	*)
+
+	wWashingErr_1	AT %MW261	:	WORD;	(*	12549	*)
+	wWashingErr_2	AT %MW262	:	WORD;	(*	12550	*)
+	wWashingErr_3	AT %MW263	:	WORD;	(*	12551	*)
+	wWashingErr_4	AT %MW264	:	WORD;	(*	12552	*)
+	xWashingDone_Line1	AT %MW1210:			BOOL;
+	xWashingDone_Line2 	AT %MW1211:			BOOL;
+	xWashingDone_Line3	AT %MW1212:			BOOL;
+	xWashingDone_Line4	AT %MW1213:			BOOL;
+	xShowCycleLine	AT %MW1215:			BOOL;
+	xPrepareStartWashing	AT %MW1217:			BOOL;
+	xPrepareStartDissolv	AT %MW1219:			BOOL;
+	xWashingIsStopped	AT %MW1221:			BOOL;
+	xDissolvingIsStopped	AT %MW1223:			BOOL;
+	xAllAuto	AT %MW1225:			BOOL;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Process' *)
+(* @CONNECTIONS := HMI_Process
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Pump' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+	Pump_FlawGet_1 			AT %MW300:		REAL;	(* 12588 *)
+	Pump_FlawGet_2 			AT %MW302:		REAL;	(* 12590 *)
+	Pump_FlawGet_3 			AT %MW304:		REAL;	(* 12592 *)
+	Pump_FlawGet_4 			AT %MW306:		REAL;	(* 12594 *)
+
+	Pump_OnManual_1 			AT %MW308:		BOOL;	(* 12596 *)
+	Pump_OnManual_2 			AT %MW310:		BOOL;	(* 12598 *)
+	Pump_OnManual_3 			AT %MW312:		BOOL;	(* 12600 *)
+	Pump_OnManual_4 			AT %MW314:		BOOL;	(* 12602 *)
+
+	Pump_NoFeedback_1 		AT %MW316:		BOOL;	(* 12604 *)
+	Pump_NoFeedback_2 		AT %MW318:		BOOL;	(* 12606 *)
+	Pump_NoFeedback_3 		AT %MW320:		BOOL;	(* 12608 *)
+	Pump_NoFeedback_4 		AT %MW322:		BOOL;	(* 12610 *)
+
+	Pump_Error_1 				AT %MW324:		WORD; (* 12612 *)
+	Pump_Error_2 				AT %MW326:		WORD; (* 12614 *)
+	Pump_Error_3 				AT %MW328:		WORD; (* 12616 *)
+	Pump_Error_4 				AT %MW330:		WORD; (* 12618 *)
+
+	Pump_OnAuto_1				AT %MW356	:	BOOL;	(*	12644	*)
+	Pump_OnAuto_2				AT %MW358	:	BOOL;	(*	12646	*)
+	Pump_OnAuto_3				AT %MW360	:	BOOL;	(*	12648	*)
+	Pump_OnAuto_4				AT %MW362	:	BOOL;	(*	12650	*)
+
+	Pump_BackFlawGet_1		AT %MW364	:	REAL;	(*	12652	*)
+	Pump_BackFlawGet_2		AT %MW366	:	REAL;	(*	12654	*)
+	Pump_BackFlawGet_3		AT %MW368	:	REAL;	(*	12656	*)
+	Pump_BackFlawGet_4		AT %MW370	:	REAL;	(*	12658	*)
+
+	PumpSpeedSet_1			AT %MW372	:	REAL;	(*	12660	*)
+	PumpSpeedSet_2			AT %MW374	:	REAL;	(*	12662	*)
+	PumpSpeedSet_3			AT %MW376	:	REAL;	(*	12664	*)
+	PumpSpeedSet_4			AT %MW378	:	REAL;	(*	12666	*)
+
+	Pump_FeedbackOn_1	AT %MW380	:	BOOL;	(*	12668	*)
+	Pump_FeedbackOn_2	AT %MW382	:	BOOL;	(*	12670	*)
+	Pump_FeedbackOn_3	AT %MW384	:	BOOL;	(*	12672	*)
+	Pump_FeedbackOn_4	AT %MW386	:	BOOL;	(*	12674	*)
+
+	PA_OnManual_1 			AT %MW388	:	BOOL;	(*	12676	*)
+	PA_OnManual_2 			AT %MW390	:	BOOL;	(*	12678	*)
+	PA_OnManual_3 			AT %MW392	:	BOOL;	(*	12680	*)
+	PA_OnManual_4 			AT %MW394	:	BOOL;	(*	12682	*)
+
+	PA_OnManual_11 		AT %MW396	:	BOOL;	(*	12684	*)
+	PA_OnManual_12			AT %MW398	:	BOOL;	(*	12686	*)
+
+	PA_OnAuto_1				AT %MW1000	:	BOOL;	(*	13288	*)
+	PA_OnAuto_2				AT %MW1002	:	BOOL;	(*	13290	*)
+	PA_OnAuto_3				AT %MW1004	:	BOOL;	(*	13292	*)
+	PA_OnAuto_4				AT %MW1006	:	BOOL;	(*	13294	*)
+
+	PA_OnAuto_11			AT %MW1008	:	BOOL;	(*	13296	*)
+	PA_OnAuto_12			AT %MW1010	:	BOOL;	(*	13298	*)
+
+	PA_State_1			AT %MW1012	:	BOOL;	(*	13300	*)
+	PA_State_2			AT %MW1014	:	BOOL;	(*	13302	*)
+	PA_State_3			AT %MW1016	:	BOOL;	(*	13304	*)
+	PA_State_4			AT %MW1018	:	BOOL;	(*	13306	*)
+
+	PA_State_11			AT %MW1020	:	BOOL;	(*	13308	*)
+	PA_State_12			AT %MW1022	:	BOOL;	(*	13310	*)
+
+	Pump_State_1		AT %MW1024	:	WORD;	(*	13312	*)
+	Pump_State_2		AT %MW1026	:	WORD;	(*	13314	*)
+	Pump_State_3		AT %MW1028	:	WORD;	(*	13316	*)
+	Pump_State_4		AT %MW1030	:	WORD;	(*	13318	*)
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN PERSISTENT
+
+
+
+	Pump_ManualMode_1 		AT %MW332:		BOOL;	(* 12620 *)
+	Pump_ManualMode_2 		AT %MW334:		BOOL;	(* 12622 *)
+	Pump_ManualMode_3 		AT %MW336:		BOOL;	(* 12624 *)
+	Pump_ManualMode_4 		AT %MW338:		BOOL;	(* 12626 *)
+
+	Pump_FlawManualSet_1 	AT %MW340:		WORD; (* 12628 *)
+	Pump_FlawManualSet_2 	AT %MW342:		WORD; (* 12630 *)
+	Pump_FlawManualSet_3 	AT %MW344:		WORD; (* 12632 *)
+	Pump_FlawManualSet_4 	AT %MW346:		WORD; (* 12634 *)
+
+	Pump_VelocitySet_1 			AT %MW348:		WORD; (* 12636 *)
+	Pump_VelocitySet_2 			AT %MW350:		WORD; (* 12638 *)
+	Pump_VelocitySet_3 			AT %MW352:		WORD; (* 12640 *)
+	Pump_VelocitySet_4 			AT %MW354:		WORD; (* 12642 *)
+
+	PA_ManualMode_1	AT %MW1032	:	BOOL;	(*	13320	*)
+	PA_ManualMode_2	AT %MW1034	:	BOOL;	(*	13322	*)
+	PA_ManualMode_3	AT %MW1036	:	BOOL;	(*	13324	*)
+	PA_ManualMode_4	AT %MW1038	:	BOOL;	(*	13326	*)
+
+	PA_ManualMode_11	AT %MW1040	:	BOOL;	(*	13328	*)
+	PA_ManualMode_12	AT %MW1042	:	BOOL;	(*	13330	*)
+
+	sCheckSrting	AT %MW1050	:	WORD;	(*	13338	*)
+
+END_VAR
+(* @OBJECT_END := 'HMI_Pump' *)
+(* @CONNECTIONS := HMI_Pump
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Recipe' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	wLine  			AT %MW400:				WORD:=2;
+	wRecipe		AT %MW402:				WORD;
+	xSave			AT %MW404:				BOOL;
+
+
+END_VAR
+VAR_GLOBAL RETAIN PERSISTENT
+
+
+
+	wAlkaliTime 					AT %MW406:		WORD;	(* 12694 *)
+	wTalkaliSet  					AT %MW408:		WORD;	(* 12696 *)
+	wFlawAlkaliSet  				AT %MW410:		REAL;	(* 12698 *)
+	wConcAlkaliSet  				AT %MW412:		REAL;	(* 12700 *)
+	wAccidTime 					AT %MW414:		WORD;	(* 12702 *)
+	wTaccidSet  					AT %MW416:		WORD;	(* 12704 *)
+	wFlawAccidSet  				AT %MW418:		REAL;	(* 12706 *)
+	wConcAccidSet 				AT %MW420:		REAL;	(* 12708 *)
+	wWaterTime  					AT %MW422:		WORD;	(* 12710 *)
+	wTwaterSet  					AT %MW424:		WORD;	(* 12712 *)
+	wFlawWaterSet  				AT %MW426:		REAL;	(* 12714 *)
+	wAfterAccidWaterTime  		AT %MW428:		WORD;	(* 12716 *)
+	wTafterAccidWater  			AT %MW430:		WORD;	(* 12718 *)
+	wConcAfterAccidWaterSet  	AT %MW432:		REAL;	(* 12720 *)
+	wAfterAlkaliWaterTime  		AT %MW434:		WORD;	(* 12722 *)
+	wTafterAlkaliWater  			AT %MW436:		WORD;	(* 12724 *)
+	wConcAfterAlkaliWaterSet  	AT %MW438:		REAL;	(* 12726 *)
+	wTsteril 						AT %MW440:		WORD;	(* 12728 *)
+	wFlawSteril 					AT %MW442:		REAL;	(* 12730 *)
+	wSterilTime 					AT %MW446:		WORD;	(* 12734 *)
+	wDissolLineAccid 			AT %MW448:		WORD;	(* 12736 *)
+	wDissolLineAlkali 			AT %MW450:		WORD;	(* 12738 *)
+	xDissilDoAccid 				AT %MW452:		BOOL;		(* 12740 *)
+	xDissolDoAlkali 				AT %MW454:		BOOL;		(* 12742 *)
+	rConcSteril 					AT %MW444:		REAL;		(* 12732 *)
+	rFlawWaterAfterAlcaliSet		AT %MW456	:	REAL;	(*	12744	*)
+	rFlawWaterAfterAccidSet		AT %MW458	:	REAL;	(*	12746	*)
+	rWaterAfterSterilFlaw			AT %MW460	:	REAL;	(*	12748	*)
+	rWaterAfterSterilConc			AT %MW462	:	REAL;	(*	12750	*)
+	rWaterAfterSterilT				AT %MW464	:	WORD;	(*	12752	*)
+	rWaterAfterSterilTime			AT %MW466	:	WORD;	(*	12754	*)
+	wConcPumpTimeSteril		AT %MW468	:	WORD;	(*	12756	*)
+
+
+
+
+
+
+
+END_VAR
+(* @OBJECT_END := 'HMI_Recipe' *)
+(* @CONNECTIONS := HMI_Recipe
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Sensors' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	Conc_Line1	AT %MW1100	:	REAL;	(*	13388	*)
+	Conc_Line2	AT %MW1102	:	REAL;	(*	13390	*)
+	Conc_Line3	AT %MW1104	:	REAL;	(*	13392	*)
+	Conc_Line4	AT %MW1106	:	REAL;	(*	13394	*)
+
+	CleanWaterLevel		AT %MW1108	:	REAL;	(*	13396	*)
+	UsedWaterLevel		AT %MW1110	:	REAL;	(*	13398	*)
+	AccidLevel		AT %MW1112	:	REAL;	(*	13400	*)
+	AlkaliLevel		AT %MW1114	:	REAL;	(*	13402	*)
+
+	Temp_Accid	AT %MW1116	:	REAL;	(*	13404	*)
+	Temp_Alkali	AT %MW1118	:	REAL;	(*	13406	*)
+	Temp_Line3	AT %MW1120	:	REAL;	(*	13408	*)
+	Temp_Line4	AT %MW1122	:	REAL;	(*	13410	*)
+
+	DI_FeedBackSwitchLine1	AT %MW1124	:	BOOL;	(*	13412	*)
+	DI_FeedBackSwitchLine2	AT %MW1126	:	BOOL;	(*	13414	*)
+	DI_FeedBackSwitchLine3	AT %MW1128	:	BOOL;	(*	13416	*)
+	DI_FeedBackSwitchLine4	AT %MW1130	:	BOOL;	(*	13418	*)
+
+	DI_AlkaliUpperLevel		AT %MW1132	:	BOOL;	(*	13420	*)
+	DI_AccidUpperLevel		AT %MW1134	:	BOOL;	(*	13422	*)
+	DI_WaterUpperLevel		AT %MW1136	:	BOOL;	(*	13424	*)
+	DI_UsedWaterUpperLevel		AT %MW1138	:	BOOL;	(*	13426	*)
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'HMI_Sensors' *)
+(* @CONNECTIONS := HMI_Sensors
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Settings' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+END_VAR
+VAR_GLOBAL RETAIN
+
+	rDissolAlkaliConcSet 					AT %MW500:		REAL;	(* 12788 *)
+	rDissolWaterConcSet 				AT %MW502:		REAL;	(* 12790 *)
+	rDissolAccidConcSet 					AT %MW504:		REAL;	(* 12792 *)
+
+	rDissolAccidLevelSet 					AT %MW562	:	REAL;	(*	12850	*)
+	rDissolAlkaliLevelSet 					AT %MW564	:	REAL;	(*	12852	*)
+	rPA_WorkTime_Acc					AT %MW566	:	WORD;	(*	12854	*)
+	rPA_WorkTime_Alk					AT %MW568	:	WORD;	(*	12856	*)
+	rConcCheckTime						AT %MW570	:	WORD;	(*	12858	*)
+
+
+	wFlawSelWafing 						AT %MW506:		REAL;	(* 12794 *)
+	wFlawDissolving 						AT %MW508:		REAL;	(* 12796 *)
+	wUsedWaterLevelOK  				AT %MW510:		REAL:=90;	(* 12798 *)
+	wUsedWaterLevelNotOK  			AT %MW512:		REAL:=80;	(* 12800 *)
+	wAfterRinseConcAlk  					AT %MW514:		REAL:=30;	(* 12802 *)
+	wAfterRinseConcAcc  				AT %MW516:		REAL:=30;	(* 12804 *)
+
+	Heater_Kp								AT %MW518:		REAL:=5;	(* 12806 *)
+	Heater_Ki								AT %MW520:		REAL:=3;	(* 12808 *)
+	Heater_Kd								AT %MW522:		REAL;	(* 12810 *)
+	Heater_wMaxPower 					AT %MW524:		WORD:=100;	(* 12812 *)
+	Heater_wMinPower 					AT %MW526:		WORD;	(* 12814 *)
+	Pump_Kp								AT %MW528:		REAL:=0.1;	(* 12816 *)
+	Pump_Ki								AT %MW530:		REAL:=15;	(* 12818 *)
+	Pump_Kd								AT %MW532:		REAL;	(* 12820 *)
+	Pump_MaxSpeed 					AT %MW534:		WORD:=45;	(* 12822 *)
+	Pump_MinSpeed 						AT %MW536:		WORD;	(* 12824 *)
+
+	RemotePumpOnDelay				AT %MW572	:	WORD;	(*	12860	*)
+	RemotePumpOffDelay				AT %MW574	:	WORD;	(*	12862	*)
+
+	RemotePumpOnDelay2				AT %MW1572	:	WORD;	(*	12860	*)
+	RemotePumpOffDelay2				AT %MW1574	:	WORD;	(*	12862	*)
+	rConcSolutionStartOperationAlk		AT %MW576	:	REAL:=0.5;	(*	12864	*)
+	rConcSolutionStopoperationAlk		AT %MW578	:	REAL:=0.5;	(*	12866	*)
+	rConcSolutionStartOperationAcc		AT %MW580	:	REAL:=0.5;	(*	12868	*)
+	rConcSolutionStopoperationAcc		AT %MW582	:	REAL:=0.5;	(*	12870	*)
+
+
+
+
+
+
+
+	SelfWashUsedWaterLevelOK 		AT %MW538:		REAL;	(* 12826 *)
+	SelfWashWaterLevelOK 				AT %MW540:		REAL;	(* 12828 *)
+	SelfWashUsedWaterLevelDrain 		AT %MW542:		REAL:=0.01;	(* 12830 *)
+	SelfWashWaterLevelDrain 			AT %MW544:		REAL:=0.01;	(* 12832 *)
+	SelfWashAlkaliLevelOK 				AT %MW546:		REAL;	(* 12834 *)
+	SelfWashAlkaliLevelDrain 			AT %MW548:		REAL;	(* 12836 *)
+	SelfWashAccidLevelOK 				AT %MW550:		REAL;	(* 12838 *)
+	SelfWashwAccidLevelDrain 			AT %MW552:		REAL;	(* 12840 *)
+	SelfWashwPumpFlawSet 			AT %MW554:		REAL;	(* 12842 *)
+	SelfWashByAlkaliTime  				AT %MW1556:		WORD;	(* 13844 *)
+	SelfWashByAccidTime  				AT %MW1558:		WORD;	(* 13846 *)
+	SelfWashByWaterTime_  				AT %MW1560:		WORD;	(* 13848 *)
+	rWaterLevelNotOK 					AT %MW1562:		REAL:=90;	(* 12850 *)
+	_SelfWashByWaterTime				AT %MW1200:		WORD;	(* 13848 *)
+
+END_VAR
+(* @OBJECT_END := 'HMI_Settings' *)
+(* @CONNECTIONS := HMI_Settings
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Values' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	xAlkaliIsReady:			BOOL;
+	xAccidIsReady:			BOOL;
+
+	xDrainOk:					BOOL;
+	wDaysRemain:			WORD;
+END_VAR
+
+(* @OBJECT_END := 'HMI_Values' *)
+(* @CONNECTIONS := HMI_Values
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'HMI_Valves' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '0' *)
+VAR_GLOBAL
+
+	OnManual_V101	AT %MW700	:	BOOL;	(*	12988	*)
+	OnManual_V102	AT %MW701	:	BOOL;	(*	12989	*)
+	OnManual_V103	AT %MW702	:	BOOL;	(*	12990	*)
+	OnManual_V104	AT %MW703	:	BOOL;	(*	12991	*)
+	OnManual_V105	AT %MW704	:	BOOL;	(*	12992	*)
+	OnManual_V106	AT %MW705	:	BOOL;	(*	12993	*)
+	OnManual_V107	AT %MW706	:	BOOL;	(*	12994	*)
+	OnManual_V108	AT %MW707	:	BOOL;	(*	12995	*)
+	OnManual_V109	AT %MW708	:	BOOL;	(*	12996	*)
+	OnManual_V110	AT %MW709	:	BOOL;	(*	12997	*)
+	OnManual_V111	AT %MW710	:	BOOL;	(*	12998	*)
+	OnManual_V201	AT %MW711	:	BOOL;	(*	12999	*)
+	OnManual_V202	AT %MW712	:	BOOL;	(*	13000	*)
+	OnManual_V203	AT %MW713	:	BOOL;	(*	13001	*)
+	OnManual_V204	AT %MW714	:	BOOL;	(*	13002	*)
+	OnManual_V205	AT %MW715	:	BOOL;	(*	13003	*)
+	OnManual_V206	AT %MW716	:	BOOL;	(*	13004	*)
+	OnManual_V207	AT %MW717	:	BOOL;	(*	13005	*)
+	OnManual_V208	AT %MW718	:	BOOL;	(*	13006	*)
+	OnManual_V209	AT %MW719	:	BOOL;	(*	13007	*)
+	OnManual_V210	AT %MW720	:	BOOL;	(*	13008	*)
+	OnManual_V211	AT %MW721	:	BOOL;	(*	13009	*)
+	OnManual_V301	AT %MW722	:	BOOL;	(*	13010	*)
+	OnManual_V302	AT %MW723	:	BOOL;	(*	13011	*)
+	OnManual_V303	AT %MW724	:	BOOL;	(*	13012	*)
+	OnManual_V304	AT %MW725	:	BOOL;	(*	13013	*)
+	OnManual_V305	AT %MW726	:	BOOL;	(*	13014	*)
+	OnManual_V306	AT %MW727	:	BOOL;	(*	13015	*)
+	OnManual_V307	AT %MW728	:	BOOL;	(*	13016	*)
+	OnManual_V308	AT %MW729	:	BOOL;	(*	13017	*)
+	OnManual_V309	AT %MW730	:	BOOL;	(*	13018	*)
+	OnManual_V310	AT %MW731	:	BOOL;	(*	13019	*)
+	OnManual_V311	AT %MW732	:	BOOL;	(*	13020	*)
+	OnManual_V401	AT %MW733	:	BOOL;	(*	13021	*)
+	OnManual_V402	AT %MW734	:	BOOL;	(*	13022	*)
+	OnManual_V403	AT %MW735	:	BOOL;	(*	13023	*)
+	OnManual_V404	AT %MW736	:	BOOL;	(*	13024	*)
+	OnManual_V405	AT %MW737	:	BOOL;	(*	13025	*)
+	OnManual_V406	AT %MW738	:	BOOL;	(*	13026	*)
+	OnManual_V407	AT %MW739	:	BOOL;	(*	13027	*)
+	OnManual_V408	AT %MW740	:	BOOL;	(*	13028	*)
+	OnManual_V409	AT %MW741	:	BOOL;	(*	13029	*)
+	OnManual_V410	AT %MW742	:	BOOL;	(*	13030	*)
+	OnManual_V411	AT %MW743	:	BOOL;	(*	13031	*)
+	OnManual_V501	AT %MW744	:	BOOL;	(*	13032	*)
+	OnManual_V510	AT %MW745	:	BOOL;	(*	13033	*)
+	OnManual_V511	AT %MW746	:	BOOL;	(*	13034	*)
+	OnManual_V512	AT %MW747	:	BOOL;	(*	13035	*)
+	OnManual_V513	AT %MW748	:	BOOL;	(*	13036	*)
+	OnManual_V514	AT %MW749	:	BOOL;	(*	13037	*)
+	OnManual_V515	AT %MW750	:	BOOL;	(*	13038	*)
+							
+							
+							
+							
+	xState_V101	AT %MW751	:	BOOL;	(*	13039	*)
+	xState_V102	AT %MW752	:	BOOL;	(*	13040	*)
+	xState_V103	AT %MW753	:	BOOL;	(*	13041	*)
+	xState_V104	AT %MW754	:	BOOL;	(*	13042	*)
+	xState_V105	AT %MW755	:	BOOL;	(*	13043	*)
+	xState_V106	AT %MW756	:	BOOL;	(*	13044	*)
+	xState_V107	AT %MW757	:	BOOL;	(*	13045	*)
+	xState_V108	AT %MW758	:	BOOL;	(*	13046	*)
+	xState_V109	AT %MW759	:	BOOL;	(*	13047	*)
+	xState_V110	AT %MW760	:	BOOL;	(*	13048	*)
+	xState_V111	AT %MW761	:	BOOL;	(*	13049	*)
+	xState_V201	AT %MW762	:	BOOL;	(*	13050	*)
+	xState_V202	AT %MW763	:	BOOL;	(*	13051	*)
+	xState_V203	AT %MW764	:	BOOL;	(*	13052	*)
+	xState_V204	AT %MW765	:	BOOL;	(*	13053	*)
+	xState_V205	AT %MW766	:	BOOL;	(*	13054	*)
+	xState_V206	AT %MW767	:	BOOL;	(*	13055	*)
+	xState_V207	AT %MW768	:	BOOL;	(*	13056	*)
+	xState_V208	AT %MW769	:	BOOL;	(*	13057	*)
+	xState_V209	AT %MW770	:	BOOL;	(*	13058	*)
+	xState_V210	AT %MW771	:	BOOL;	(*	13059	*)
+	xState_V211	AT %MW772	:	BOOL;	(*	13060	*)
+	xState_V301	AT %MW773	:	BOOL;	(*	13061	*)
+	xState_V302	AT %MW774	:	BOOL;	(*	13062	*)
+	xState_V303	AT %MW775	:	BOOL;	(*	13063	*)
+	xState_V304	AT %MW776	:	BOOL;	(*	13064	*)
+	xState_V305	AT %MW777	:	BOOL;	(*	13065	*)
+	xState_V306	AT %MW778	:	BOOL;	(*	13066	*)
+	xState_V307	AT %MW779	:	BOOL;	(*	13067	*)
+	xState_V308	AT %MW780	:	BOOL;	(*	13068	*)
+	xState_V309	AT %MW781	:	BOOL;	(*	13069	*)
+	xState_V310	AT %MW782	:	BOOL;	(*	13070	*)
+	xState_V311	AT %MW783	:	BOOL;	(*	13071	*)
+	xState_V401	AT %MW784	:	BOOL;	(*	13072	*)
+	xState_V402	AT %MW785	:	BOOL;	(*	13073	*)
+	xState_V403	AT %MW786	:	BOOL;	(*	13074	*)
+	xState_V404	AT %MW787	:	BOOL;	(*	13075	*)
+	xState_V405	AT %MW788	:	BOOL;	(*	13076	*)
+	xState_V406	AT %MW789	:	BOOL;	(*	13077	*)
+	xState_V407	AT %MW790	:	BOOL;	(*	13078	*)
+	xState_V408	AT %MW791	:	BOOL;	(*	13079	*)
+	xState_V409	AT %MW792	:	BOOL;	(*	13080	*)
+	xState_V410	AT %MW793	:	BOOL;	(*	13081	*)
+	xState_V411	AT %MW794	:	BOOL;	(*	13082	*)
+	xState_V501	AT %MW795	:	BOOL;	(*	13083	*)
+	xState_V510	AT %MW796	:	BOOL;	(*	13084	*)
+	xState_V511	AT %MW797	:	BOOL;	(*	13085	*)
+	xState_V512	AT %MW798	:	BOOL;	(*	13086	*)
+	xState_V513	AT %MW799	:	BOOL;	(*	13087	*)
+	xState_V514	AT %MW800	:	BOOL;	(*	13088	*)
+	xState_V515	AT %MW801	:	BOOL;	(*	13089	*)
+							
+							
+	OnAuto_V101	AT %MW802	:	BOOL;	(*	13090	*)
+	OnAuto_V102	AT %MW803	:	BOOL;	(*	13091	*)
+	OnAuto_V103	AT %MW804	:	BOOL;	(*	13092	*)
+	OnAuto_V104	AT %MW805	:	BOOL;	(*	13093	*)
+	OnAuto_V105	AT %MW806	:	BOOL;	(*	13094	*)
+	OnAuto_V106	AT %MW807	:	BOOL;	(*	13095	*)
+	OnAuto_V107	AT %MW808	:	BOOL;	(*	13096	*)
+	OnAuto_V108	AT %MW809	:	BOOL;	(*	13097	*)
+	OnAuto_V109	AT %MW810	:	BOOL;	(*	13098	*)
+	OnAuto_V110	AT %MW811	:	BOOL;	(*	13099	*)
+	OnAuto_V111	AT %MW812	:	BOOL;	(*	13100	*)
+	OnAuto_V201	AT %MW813	:	BOOL;	(*	13101	*)
+	OnAuto_V202	AT %MW814	:	BOOL;	(*	13102	*)
+	OnAuto_V203	AT %MW815	:	BOOL;	(*	13103	*)
+	OnAuto_V204	AT %MW816	:	BOOL;	(*	13104	*)
+	OnAuto_V205	AT %MW817	:	BOOL;	(*	13105	*)
+	OnAuto_V206	AT %MW818	:	BOOL;	(*	13106	*)
+	OnAuto_V207	AT %MW819	:	BOOL;	(*	13107	*)
+	OnAuto_V208	AT %MW820	:	BOOL;	(*	13108	*)
+	OnAuto_V209	AT %MW821	:	BOOL;	(*	13109	*)
+	OnAuto_V210	AT %MW822	:	BOOL;	(*	13110	*)
+	OnAuto_V211	AT %MW823	:	BOOL;	(*	13111	*)
+	OnAuto_V301	AT %MW824	:	BOOL;	(*	13112	*)
+	OnAuto_V302	AT %MW825	:	BOOL;	(*	13113	*)
+	OnAuto_V303	AT %MW826	:	BOOL;	(*	13114	*)
+	OnAuto_V304	AT %MW827	:	BOOL;	(*	13115	*)
+	OnAuto_V305	AT %MW828	:	BOOL;	(*	13116	*)
+	OnAuto_V306	AT %MW829	:	BOOL;	(*	13117	*)
+	OnAuto_V307	AT %MW830	:	BOOL;	(*	13118	*)
+	OnAuto_V308	AT %MW831	:	BOOL;	(*	13119	*)
+	OnAuto_V309	AT %MW832	:	BOOL;	(*	13120	*)
+	OnAuto_V310	AT %MW833	:	BOOL;	(*	13121	*)
+	OnAuto_V311	AT %MW834	:	BOOL;	(*	13122	*)
+	OnAuto_V401	AT %MW835	:	BOOL;	(*	13123	*)
+	OnAuto_V402	AT %MW836	:	BOOL;	(*	13124	*)
+	OnAuto_V403	AT %MW837	:	BOOL;	(*	13125	*)
+	OnAuto_V404	AT %MW838	:	BOOL;	(*	13126	*)
+	OnAuto_V405	AT %MW839	:	BOOL;	(*	13127	*)
+	OnAuto_V406	AT %MW840	:	BOOL;	(*	13128	*)
+	OnAuto_V407	AT %MW841	:	BOOL;	(*	13129	*)
+	OnAuto_V408	AT %MW842	:	BOOL;	(*	13130	*)
+	OnAuto_V409	AT %MW843	:	BOOL;	(*	13131	*)
+	OnAuto_V410	AT %MW844	:	BOOL;	(*	13132	*)
+	OnAuto_V411	AT %MW845	:	BOOL;	(*	13133	*)
+	OnAuto_V501	AT %MW846	:	BOOL;	(*	13134	*)
+	OnAuto_V510	AT %MW847	:	BOOL;	(*	13135	*)
+	OnAuto_V511	AT %MW848	:	BOOL;	(*	13136	*)
+	OnAuto_V512	AT %MW849	:	BOOL;	(*	13137	*)
+	OnAuto_V513	AT %MW850	:	BOOL;	(*	13138	*)
+	OnAuto_V514	AT %MW851	:	BOOL;	(*	13139	*)
+	OnAuto_V515	AT %MW852	:	BOOL;	(*	13140	*)
+
+
+
+	xStopFillingWaterTank: BOOL;
+
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN PERSISTENT
+
+	ManualMode_V101	AT %MW853	:	BOOL;	(*	13140	*)
+	ManualMode_V102	AT %MW854	:	BOOL;	(*	13141	*)
+	ManualMode_V103	AT %MW855	:	BOOL;	(*	13142	*)
+	ManualMode_V104	AT %MW856	:	BOOL;	(*	13143	*)
+	ManualMode_V105	AT %MW857	:	BOOL;	(*	13144	*)
+	ManualMode_V106	AT %MW858	:	BOOL;	(*	13145	*)
+	ManualMode_V107	AT %MW859	:	BOOL;	(*	13146	*)
+	ManualMode_V108	AT %MW860	:	BOOL;	(*	13147	*)
+	ManualMode_V109	AT %MW861	:	BOOL;	(*	13148	*)
+	ManualMode_V110	AT %MW862	:	BOOL;	(*	13149	*)
+	ManualMode_V111	AT %MW863	:	BOOL;	(*	13150	*)
+	ManualMode_V201	AT %MW864	:	BOOL;	(*	13151	*)
+	ManualMode_V202	AT %MW865	:	BOOL;	(*	13152	*)
+	ManualMode_V203	AT %MW866	:	BOOL;	(*	13153	*)
+	ManualMode_V204	AT %MW867	:	BOOL;	(*	13154	*)
+	ManualMode_V205	AT %MW868	:	BOOL;	(*	13155	*)
+	ManualMode_V206	AT %MW869	:	BOOL;	(*	13156	*)
+	ManualMode_V207	AT %MW870	:	BOOL;	(*	13157	*)
+	ManualMode_V208	AT %MW871	:	BOOL;	(*	13158	*)
+	ManualMode_V209	AT %MW872	:	BOOL;	(*	13159	*)
+	ManualMode_V210	AT %MW873	:	BOOL;	(*	13160	*)
+	ManualMode_V211	AT %MW874	:	BOOL;	(*	13161	*)
+	ManualMode_V301	AT %MW875	:	BOOL;	(*	13162	*)
+	ManualMode_V302	AT %MW876	:	BOOL;	(*	13163	*)
+	ManualMode_V303	AT %MW877	:	BOOL;	(*	13164	*)
+	ManualMode_V304	AT %MW878	:	BOOL;	(*	13165	*)
+	ManualMode_V305	AT %MW879	:	BOOL;	(*	13166	*)
+	ManualMode_V306	AT %MW880	:	BOOL;	(*	13167	*)
+	ManualMode_V307	AT %MW881	:	BOOL;	(*	13168	*)
+	ManualMode_V308	AT %MW882	:	BOOL;	(*	13169	*)
+	ManualMode_V309	AT %MW883	:	BOOL;	(*	13170	*)
+	ManualMode_V310	AT %MW884	:	BOOL;	(*	13171	*)
+	ManualMode_V311	AT %MW885	:	BOOL;	(*	13172	*)
+	ManualMode_V401	AT %MW886	:	BOOL;	(*	13173	*)
+	ManualMode_V402	AT %MW887	:	BOOL;	(*	13174	*)
+	ManualMode_V403	AT %MW888	:	BOOL;	(*	13175	*)
+	ManualMode_V404	AT %MW889	:	BOOL;	(*	13176	*)
+	ManualMode_V405	AT %MW890	:	BOOL;	(*	13177	*)
+	ManualMode_V406	AT %MW891	:	BOOL;	(*	13178	*)
+	ManualMode_V407	AT %MW892	:	BOOL;	(*	13179	*)
+	ManualMode_V408	AT %MW893	:	BOOL;	(*	13180	*)
+	ManualMode_V409	AT %MW894	:	BOOL;	(*	13181	*)
+	ManualMode_V410	AT %MW895	:	BOOL;	(*	13182	*)
+	ManualMode_V411	AT %MW896	:	BOOL;	(*	13183	*)
+	ManualMode_V501	AT %MW897	:	BOOL;	(*	13184	*)
+	ManualMode_V510	AT %MW898	:	BOOL;	(*	13185	*)
+	ManualMode_V511	AT %MW899	:	BOOL;	(*	13186	*)
+	ManualMode_V512	AT %MW900	:	BOOL;	(*	13187	*)
+	ManualMode_V513	AT %MW901	:	BOOL;	(*	13188	*)
+	ManualMode_V514	AT %MW902	:	BOOL;	(*	13189	*)
+	ManualMode_V515	AT %MW903	:	BOOL;	(*	13190	*)
+
+
+END_VAR
+(* @OBJECT_END := 'HMI_Valves' *)
+(* @CONNECTIONS := HMI_Valves
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'ProcGlobal' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+	xDissolving_StartLine1:		BOOL;
+	xDissolving_StartLine2:		BOOL;
+	xDissolving_StartLine3:		BOOL;
+	xDissolving_StartLine4:		BOOL;
+
+	xDissolving_PausetLine1:		BOOL;
+	xDissolving_PausetLine2:		BOOL;
+	xDissolving_PausetLine3:		BOOL;
+	xDissolving_PausetLine4:		BOOL;
+
+
+	xDoAccid_Line1:					BOOL;
+	xDoAlkali_Line1:					BOOL;
+	xDoAccid_Line2:					BOOL;
+	xDoAlkali_Line2:					BOOL;
+	xDoAccid_Line3:					BOOL;
+	xDoAlkali_Line3:					BOOL;
+	xDoAccid_Line4:					BOOL;
+	xDoAlkali_Line4:					BOOL;
+
+
+
+
+
+END_VAR
+VAR_GLOBAL RETAIN
+	xAccidIsGoing1:					BOOL;
+	xAccidIsGoing2:					BOOL;
+	xAccidIsGoing3:					BOOL;
+	xAccidIsGoing4:					BOOL;
+END_VAR
+(* @OBJECT_END := 'ProcGlobal' *)
+(* @CONNECTIONS := ProcGlobal
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Pump' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	Pump_FlawAutoSet_1:		REAL;
+	Pump_FlawAutoSet_2:		REAL;
+	Pump_FlawAutoSet_3:		REAL;
+	Pump_FlawAutoSet_4:		REAL;
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'Pump' *)
+(* @CONNECTIONS := Pump
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'RecipeVars' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+	arOperations:					ARRAY[0..7] OF BOOL;
+
+
+
+
+END_VAR
+
+VAR_GLOBAL RETAIN
+
+	arAlkaliTime:					ARRAY[1..4, 1..10] OF WORD;
+	arTalkaliSet: 					ARRAY[1..4, 1..10] OF WORD;
+	arFlawAlkaliSet: 				ARRAY[1..4, 1..10] OF REAL;
+	arConcAlkaliSet: 				ARRAY[1..4, 1..10] OF REAL;
+
+	arAccidTime:					ARRAY[1..4, 1..10] OF WORD;
+	arTaccidSet: 					ARRAY[1..4, 1..10] OF WORD;
+	arFlawAccidSet: 				ARRAY[1..4, 1..10] OF REAL;
+	arConcAccidSet:				ARRAY[1..4, 1..10] OF REAL;
+
+	arWaterTime: 					ARRAY[1..4, 1..10] OF WORD;
+	arTwaterSet: 					ARRAY[1..4, 1..10] OF WORD;
+	arFlawWaterSet: 				ARRAY[1..4, 1..10] OF REAL;
+
+	arAfterAccidWaterTime: 		ARRAY[1..4, 1..10] OF WORD;
+	arTafterAccidWater: 			ARRAY[1..4, 1..10] OF WORD;
+	arConcAfterAccidWaterSet: 	ARRAY[1..4, 1..10] OF REAL;
+
+	arAfterAlkaliWaterTime: 		ARRAY[1..4, 1..10] OF WORD;
+	arTafterAlkaliWater: 			ARRAY[1..4, 1..10] OF WORD;
+	arConcAfterAlkaliWaterSet: 	ARRAY[1..4, 1..10] OF REAL;
+
+	arTsterilSet: 					ARRAY[1..4, 1..10] OF WORD;
+	arFlawSterilSet: 				ARRAY[1..4, 1..10] OF REAL;
+	arConcSterilSet: 				ARRAY[1..4, 1..10] OF REAL;
+	arSterilTime: 					ARRAY[1..4, 1..10] OF WORD;
+
+	arFlawWaterAfterAlcaliSet:	ARRAY[1..4, 1..10] OF REAL;
+	arFlawWaterAfterAccidSet:	ARRAY[1..4, 1..10] OF REAL;
+
+	arWaterAfterSterilFlaw:		ARRAY[1..4, 1..10] OF REAL;
+	arWaterAfterSterilConc:		ARRAY[1..4, 1..10] OF REAL;
+	arWaterAfterSterilT:			ARRAY[1..4, 1..10] OF WORD;
+	arWaterAfterSterilTime:		ARRAY[1..4, 1..10] OF WORD;
+	arConcPumpTimeSteril:		ARRAY[1..4, 1..10] OF WORD;
+	arOperations2x:				ARRAY[1..4,0..7] OF BOOL;
+	arOperations3x:				ARRAY[1..4,1..10,0..7] OF BOOL;
+
+
+END_VAR
+
+(* @OBJECT_END := 'RecipeVars' *)
+(* @CONNECTIONS := RecipeVars
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Valves' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_GLOBAL
+
+
+
+END_VAR
+
+(* @OBJECT_END := 'Valves' *)
+(* @CONNECTIONS := Valves
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
+
+(* @NESTEDCOMMENTS := 'Yes' *)
+(* @GLOBAL_VARIABLE_LIST := 'Variable_Configuration' *)
+(* @PATH := '' *)
+(* @OBJECTFLAGS := '0, 8' *)
+(* @SYMFILEFLAGS := '2048' *)
+VAR_CONFIG
+END_VAR
+
+(* @OBJECT_END := 'Variable_Configuration' *)
+(* @CONNECTIONS := Variable_Configuration
+FILENAME : ''
+FILETIME : 0
+EXPORT : 0
+NUMOFCONNECTIONS : 0
+*)
